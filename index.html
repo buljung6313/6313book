@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>환경과 생태 좀 아는 10대 - 독서 & 퀴즈 Web App</title>
+  
+  <style>
+    /* 1. CSS 변수 및 기본 스타일 (라이트/다크 모드 지원) */
+    :root {
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-color: #2c3e50;
+      --accent-color: #2ecc71;
+      --secondary-color: #3498db;
+      --border-color: #e0e0e0;
+      --font-family: 'Noto Sans KR', sans-serif;
+      --font-size: 16px;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a2e;
+      --card-bg: #16213e;
+      --text-color: #e9ecef;
+      --accent-color: #00b894;
+      --secondary-color: #0984e3;
+      --border-color: #2d4059;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      font-size: var(--font-size);
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* 내비게이션 바 */
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 2px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    nav {
+      margin-top: 0.5rem;
+    }
+
+    nav button {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 0.5rem 1rem;
+      margin-left: 0.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    nav button.active {
+      background-color: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+    }
+
+    /* 레이아웃 메인 */
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .page {
+      display: none;
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* 퀴즈 스타일 */
+    .timer-bar {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #e74c3c;
+      margin-bottom: 1rem;
+    }
+
+    .option-btn {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      margin: 0.5rem 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+
+    .option-btn:hover {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    /* 순위표 (Leaderboard) */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    th {
+      background-color: var(--bg-color);
+    }
+
+    /* 설정 페이지 스타일 */
+    .setting-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .setting-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    select, input[type="text"] {
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>🌿 환경과 생태 좀 아는 10대</h2>
+    <nav>
+      <button onclick="showPage('summary-page', this)" class="active">독서 정리</button>
+      <button onclick="showPage('quiz-page', this)">ZEP 타임어택 퀴즈</button>
+      <button onclick="showPage('rank-page', this)">순위표</button>
+      <button onclick="showPage('settings-page', this)">⚙️ 설정</button>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- 1. 독서 정리 페이지 -->
+    <div id="summary-page" class="page active">
+      <h3>📚 책 요약 및 핵심 내용 정리</h3>
+      <p><strong>[주요 내용]</strong> 기후변화, 생물 다양성, 플라스틱 문제, 식량 위기 등 10대가 꼭 알아야 할 주요 환경 이슈를 다룹니다.</p>
+      <hr>
+      <h4>나만의 독서 메모</h4>
+      <textarea id="book-notes" style="width: 100%; height: 150px; padding: 10px; box-sizing: border-box; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);" placeholder="책을 읽고 느낀 점이나 요약 내용을 기록하세요..."></textarea>
+    </div>
+
+    <!-- 2. ZEP 스타일 타임어택 퀴즈 페이지 -->
+    <div id="quiz-page" class="page">
+      <h3>⚡ ZEP 타임어택 퀴즈 모드</h3>
+      
+      <div id="quiz-start-screen">
+        <p>문제를 정확하고 빠르게 풀수록 높은 순위에 등록됩니다!</p>
+        <input type="text" id="player-name" placeholder="닉네임을 입력하세요" style="width: 60%; margin-bottom: 10px;"><br>
+        <button onclick="startQuiz()" style="padding: 10px 20px; background: var(--secondary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">퀴즈 시작</button>
+      </div>
+
+      <div id="quiz-body" style="display: none;">
+        <div class="timer-bar">⏱️ 경과 시간: <span id="timer">0.0</span>초</div>
+        <h4 id="question-text">질문 내용이 여기에 들어갑니다.</h4>
+        <div id="options-container"></div>
+      </div>
+    </div>
+
+    <!-- 3. 순위표 페이지 -->
+    <div id="rank-page" class="page">
+      <h3>🏆 이번 세션 랭킹 순위표</h3>
+      <p style="font-size: 0.85rem; color: #7f8c8d;">※ 서버가 없는 버전으로, 브라우저를 새로고침하면 순위가 초기화됩니다.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>닉네임</th>
+            <th>점수</th>
+            <th>기록 (초)</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr><td colspan="4">기록이 없습니다. 퀴즈를 진행해 보세요!</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 설정 페이지 -->
+    <div id="settings-page" class="page">
+      <h3>⚙️ 환경 설정</h3>
+      
+      <div class="setting-group">
+        <label><strong>화면 테마:</strong></label>
+        <button onclick="setTheme('light')" style="padding: 8px 15px; cursor: pointer;">☀️ 라이트 모드</button>
+        <button onclick="setTheme('dark')" style="padding: 8px 15px; cursor: pointer;">🌙 다크 모드</button>
+      </div>
+
+      <div class="setting-group">
+        <label for="font-size-select"><strong>글자 크기:</strong></label>
+        <select id="font-size-select" onchange="changeFontSize(this.value)">
+          <option value="14px">작게 (14px)</option>
+          <option value="16px" selected>보통 (16px)</option>
+          <option value="18px">크게 (18px)</option>
+          <option value="20px">매우 크게 (20px)</option>
+        </select>
+      </div>
+
+      <div class="setting-group">
+        <label for="font-family-select"><strong>글꼴 선택:</strong></label>
+        <select id="font-family-select" onchange="changeFontFamily(this.value)">
+          <option value="'Noto Sans KR', sans-serif">기본 (Noto Sans)</option>
+          <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
+          <option value="'Nanum Gothic', sans-serif">나눔 고딕</option>
+          <option value="sans-serif">고딕체 (System)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------
+    // 퀴즈 데이터
+    // -------------------------------------------------------------
+    const quizData = [
+      {
+        question: "1. 다음 중 생태계 파괴의 주요 원인 중 하나인 '외래종'에 대한 설명으로 옳은 것은?",
+        options: ["항상 생태계에 이롭다.", "고유 생태계의 먹이사슬을 교란시킬 수 있다.", "모든 외래종은 법적 처벌 대상이다.", "자연적으로만 이동한다."],
+        answer: 1
+      },
+      {
+        question: "2. 온실가스 증가로 인해 지구의 평균 기온이 상승하는 현상을 무엇이라 하나요?",
+        options: ["산성비", "지구 온난화", "사막화", "엘니뇨"],
+        answer: 1
+      },
+      {
+        question: "3. 바다로 유입되어 작게 부서진 미세 플라스틱이 생태계에 미치는 영향은?",
+        options: ["해양 생물에 흡수되어 먹이사슬에 남는다.", "물에 완전히 녹아 분해된다.", "바다를 깨끗하게 만든다.", "아무런 영향도 미치지 않는다."],
+        answer: 0
+      }
+    ];
+
+    // 메모리 내 임시 저장용 변수
+    let sessionRanks = [];
+    let currentQuestionIdx = 0;
+    let score = 0;
+    let timerInterval = null;
+    let timeElapsed = 0;
+    let playerName = "";
+
+    // -------------------------------------------------------------
+    // 페이지 전환
+    // -------------------------------------------------------------
+    function showPage(pageId, btnElement) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(pageId).classList.add('active');
+      if (btnElement) {
+        btnElement.classList.add('active');
+      }
+
+      if (pageId === 'rank-page') {
+        renderLeaderboard();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // ZEP 스타일 타임어택 퀴즈 로직
+    // -------------------------------------------------------------
+    function startQuiz() {
+      const nameInput = document.getElementById('player-name').value;
+      if (!nameInput.trim()) {
+        alert("닉네임을 입력해 주세요!");
+        return;
+      }
+      playerName = nameInput;
+      currentQuestionIdx = 0;
+      score = 0;
+      timeElapsed = 0;
+
+      document.getElementById('quiz-start-screen').style.display = 'none';
+      document.getElementById('quiz-body').style.display = 'block';
+
+      // 0.1초 단위 타이머
+      timerInterval = setInterval(() => {
+        timeElapsed += 0.1;
+        document.getElementById('timer').innerText = timeElapsed.toFixed(1);
+      }, 100);
+
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = quizData[currentQuestionIdx];
+      document.getElementById('question-text').innerText = q.question;
+      
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => selectAnswer(idx);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(selectedIdx) {
+      if (selectedIdx === quizData[currentQuestionIdx].answer) {
+        score += 10;
+      }
+
+      currentQuestionIdx++;
+      if (currentQuestionIdx < quizData.length) {
+        renderQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function finishQuiz() {
+      clearInterval(timerInterval);
+      const finalTime = timeElapsed.toFixed(1);
+      alert(`퀴즈 완료!\n점수: ${score}점\n소요시간: ${finalTime}초`);
+
+      // 임시 배열에 점수 추가
+      sessionRanks.push({ name: playerName, score: score, time: parseFloat(finalTime) });
+      // 점수 높은순, 시간 짧은순 정렬
+      sessionRanks.sort((a, b) => b.score - a.score || a.time - b.time);
+
+      // 화면 초기화 및 순위표 페이지로 이동
+      document.getElementById('quiz-start-screen').style.display = 'block';
+      document.getElementById('quiz-body').style.display = 'none';
+      
+      const rankBtn = document.querySelectorAll('nav button')[2];
+      showPage('rank-page', rankBtn);
+    }
+
+    // -------------------------------------------------------------
+    // 순위표 출력
+    // -------------------------------------------------------------
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-body');
+      tbody.innerHTML = '';
+
+      if (sessionRanks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">기록이 없습니다. 퀴즈를 진행해 보세요!</td></tr>';
+        return;
+      }
+
+      sessionRanks.forEach((rank, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${rank.name}</td>
+          <td>${rank.score}점</td>
+          <td>${rank.time}초</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 설정 옵션 (테마, 글자 크기, 글꼴)
+    // -------------------------------------------------------------
+    function setTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    }
+
+    function changeFontSize(size) {
+      document.documentElement.style.setProperty('--font-size', size);
+    }
+
+    function changeFontFamily(font) {
+      document.documentElement.style.setProperty('--font-family', font);
+    }
+  </script>
+</body>
+</html>
