@@ -1,325 +1,461 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>환경과 생태 좀 아는 10대 - 독서 기록 & 퀴즈 Web App</title>
+  <title>환경과 생태 쫌 아는 10대 - 독서 & 퀴즈 워크북</title>
   
+  <!-- Google Fonts 로드 (글꼴 변경 오류 방지) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
   <style>
-    /* CSS 변수 및 기본 스타일 (라이트/다크 모드 지원) */
+    /* CSS 변수 & 고급 디자인 테마 정의 */
     :root {
-      --bg-color: #f4f7f6;
+      --bg-color: #f8fafc;
       --card-bg: #ffffff;
-      --text-color: #2c3e50;
-      --accent-color: #2ecc71;
-      --secondary-color: #3498db;
-      --border-color: #e0e0e0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --secondary: #3b82f6;
+      --border-color: #e2e8f0;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
       --font-family: 'Noto Sans KR', sans-serif;
       --font-size: 16px;
     }
 
     [data-theme="dark"] {
-      --bg-color: #1a1a2e;
-      --card-bg: #16213e;
-      --text-color: #e9ecef;
-      --accent-color: #00b894;
-      --secondary-color: #0984e3;
-      --border-color: #2d4059;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #10b981;
+      --primary-hover: #34d399;
+      --secondary: #60a5fa;
+      --border-color: #334155;
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.25s, border-color 0.25s, color 0.25s;
     }
 
     body {
       background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: var(--font-family);
+      color: var(--text-main);
+      font-family: var(--font-family) !important;
       font-size: var(--font-size);
       margin: 0;
       padding: 0;
-      transition: background-color 0.3s, color 0.3s;
+      line-height: 1.6;
     }
 
+    /* 고급 상단 헤더 */
     header {
-      background-color: var(--card-bg);
-      border-bottom: 2px solid var(--border-color);
-      padding: 1rem 2rem;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.25rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     nav {
-      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
     }
 
     nav button {
-      background: none;
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      padding: 0.5rem 1rem;
-      margin-left: 0.2rem;
-      border-radius: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-family: inherit !important;
+    }
+
+    nav button:hover {
+      color: var(--text-main);
+      background-color: var(--bg-color);
     }
 
     nav button.active {
-      background-color: var(--accent-color);
-      color: white;
-      border-color: var(--accent-color);
+      background-color: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
     }
 
+    /* 메인 레이아웃 */
     .container {
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      max-width: 860px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem;
     }
 
     .page {
       display: none;
       background: var(--card-bg);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 2.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--card-shadow);
     }
 
     .page.active {
       display: block;
+      animation: fadeIn 0.3s ease-in-out;
     }
 
-    /* 챕터 카드 및 입력 폼 스타일 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .page-header h3 {
+      font-size: 1.5rem;
+      margin: 0 0 0.4rem 0;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    /* 챕터 카드 */
     .chapter-card {
+      background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 1.2rem;
-      margin-bottom: 1.5rem;
-      background-color: var(--bg-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .chapter-card:hover {
+      border-color: var(--primary);
     }
 
     .chapter-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.8rem;
-    }
-
-    .rating-input {
-      display: flex;
-      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
       gap: 0.5rem;
     }
 
-    .rating-input input[type="number"] {
-      width: 70px;
-      padding: 0.4rem;
+    .chapter-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    /* 점수 입력 필드 (최대 5.0 제어) */
+    .rating-box {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-color);
+      padding: 0.3rem 0.8rem;
+      border-radius: 8px;
       border: 1px solid var(--border-color);
-      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .rating-box input[type="number"] {
+      width: 60px;
+      padding: 0.25rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
       text-align: center;
-      font-size: 1rem;
+      font-weight: 700;
+      font-size: 0.95rem;
       background-color: var(--card-bg);
-      color: var(--text-color);
+      color: var(--text-main);
+      font-family: inherit !important;
     }
 
     textarea {
       width: 100%;
-      height: 100px;
-      padding: 10px;
-      box-sizing: border-box;
-      border-radius: 6px;
+      height: 110px;
+      padding: 0.8rem;
+      border-radius: 8px;
       border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      color: var(--text-color);
-      font-family: inherit;
+      background: var(--bg-color);
+      color: var(--text-main);
+      font-family: inherit !important;
       font-size: 0.95rem;
       resize: vertical;
+      outline: none;
     }
 
-    /* 퀴즈 스타일 */
-    .timer-bar {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #e74c3c;
-      margin-bottom: 1rem;
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    /* 퀴즈 UI */
+    .timer-badge {
+      display: inline-block;
+      background: #fef2f2;
+      color: #ef4444;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #fee2e2;
+    }
+
+    [data-theme="dark"] .timer-badge {
+      background: #451a1a;
+      border-color: #7f1d1d;
+      color: #fca5a5;
     }
 
     .option-btn {
       display: block;
       width: 100%;
-      padding: 1rem;
-      margin: 0.5rem 0;
+      padding: 1rem 1.25rem;
+      margin: 0.6rem 0;
       background-color: var(--bg-color);
-      color: var(--text-color);
+      color: var(--text-main);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 10px;
       text-align: left;
       cursor: pointer;
       font-size: 1rem;
-      transition: background-color 0.2s;
+      font-family: inherit !important;
+      font-weight: 500;
     }
 
     .option-btn:hover {
-      background-color: var(--accent-color);
+      border-color: var(--primary);
+      background-color: rgba(16, 185, 129, 0.05);
+      color: var(--primary);
+    }
+
+    .primary-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--primary);
       color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit !important;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
     }
 
-    .setting-group {
-      margin-bottom: 1.5rem;
+    .primary-btn:hover {
+      background: var(--primary-hover);
     }
 
-    .setting-group label {
-      display: block;
-      margin-bottom: 0.5rem;
+    /* 설정폼 레이아웃 */
+    .setting-card {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     select {
-      padding: 0.5rem;
+      padding: 0.5rem 1rem;
       border: 1px solid var(--border-color);
       border-radius: 6px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      font-family: inherit !important;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h2>🌿 환경과 생태 좀 아는 10대</h2>
+    <div class="brand-title">🌱 환경과 생태 쫌 아는 10대</div>
     <nav>
       <button onclick="showPage('chapter-page', this)" class="active">챕터별 기록</button>
-      <button onclick="showPage('review-page', this)">독서 감상문</button>
+      <button onclick="showPage('review-page', this)">종합 감상문</button>
       <button onclick="showPage('quiz-page', this)">독서 퀴즈</button>
       <button onclick="showPage('settings-page', this)">⚙️ 설정</button>
     </nav>
   </header>
 
   <div class="container">
-    <!-- 1. 챕터별 평가 및 기록문 페이지 -->
+    <!-- 1. 챕터별 평가 및 독서 기록문 -->
     <div id="chapter-page" class="page active">
-      <h3>📚 챕터별 평가 및 독서 기록문</h3>
-      <p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 1.5rem;">각 챕터를 읽고 5.0점 만점 평점(0.1점 단위)과 핵심 요약 기록문을 작성해 보세요.</p>
+      <div class="page-header">
+        <h3>📚 챕터별 평가 및 요약 기록</h3>
+        <p>각 주제를 읽고 **최대 5.0점** 범위 내에서 점수(0.1 단위)를 매기고 주요 내용을 기록해 보세요.</p>
+      </div>
 
-      <!-- 1장 -->
+      <!-- 챕터 반복 리스트 -->
       <div class="chapter-card">
         <div class="chapter-header">
-          <strong>1장. 기후 변화와 생태계</strong>
-          <div class="rating-input">
+          <span class="chapter-title">1. 컵라면과 젓가락 (자원과 쓰레기)</span>
+          <div class="rating-box">
             <label for="ch1-rating">평점:</label>
-            <input type="number" id="ch1-rating" min="0" max="5" step="0.1" placeholder="0.0"> / 5.0
+            <input type="number" id="ch1-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
           </div>
         </div>
-        <textarea placeholder="1장의 주요 내용 요약 및 독서 기록을 작성하세요..."></textarea>
+        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
       </div>
 
-      <!-- 2장 -->
       <div class="chapter-card">
         <div class="chapter-header">
-          <strong>2장. 생물 다양성과 야생동물</strong>
-          <div class="rating-input">
+          <span class="chapter-title">2. 바나나와 아보카도 (수입 식품과 탄소발자국)</span>
+          <div class="rating-box">
             <label for="ch2-rating">평점:</label>
-            <input type="number" id="ch2-rating" min="0" max="5" step="0.1" placeholder="0.0"> / 5.0
+            <input type="number" id="ch2-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
           </div>
         </div>
-        <textarea placeholder="2장의 주요 내용 요약 및 독서 기록을 작성하세요..."></textarea>
+        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
       </div>
 
-      <!-- 3장 -->
       <div class="chapter-card">
         <div class="chapter-header">
-          <strong>3장. 플라스틱과 자원 순환</strong>
-          <div class="rating-input">
+          <span class="chapter-title">3. 생수병과 미세 플라스틱 (플라스틱 생태계)</span>
+          <div class="rating-box">
             <label for="ch3-rating">평점:</label>
-            <input type="number" id="ch3-rating" min="0" max="5" step="0.1" placeholder="0.0"> / 5.0
+            <input type="number" id="ch3-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
           </div>
         </div>
-        <textarea placeholder="3장의 주요 내용 요약 및 독서 기록을 작성하세요..."></textarea>
+        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
       </div>
 
-      <!-- 4장 -->
       <div class="chapter-card">
         <div class="chapter-header">
-          <strong>4장. 식량 위기와 먹거리 생태계</strong>
-          <div class="rating-input">
+          <span class="chapter-title">4. 휴대폰과 전자 쓰레기 (희귀 금속과 오염)</span>
+          <div class="rating-box">
             <label for="ch4-rating">평점:</label>
-            <input type="number" id="ch4-rating" min="0" max="5" step="0.1" placeholder="0.0"> / 5.0
+            <input type="number" id="ch4-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
           </div>
         </div>
-        <textarea placeholder="4장의 주요 내용 요약 및 독서 기록을 작성하세요..."></textarea>
+        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
       </div>
 
-      <!-- 5장 -->
       <div class="chapter-card">
         <div class="chapter-header">
-          <strong>5장. 지속 가능한 미래와 우리의 실천</strong>
-          <div class="rating-input">
+          <span class="chapter-title">5. 패스트 패션과 노동자 (옷의 일생과 환경)</span>
+          <div class="rating-box">
             <label for="ch5-rating">평점:</label>
-            <input type="number" id="ch5-rating" min="0" max="5" step="0.1" placeholder="0.0"> / 5.0
+            <input type="number" id="ch5-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
           </div>
         </div>
-        <textarea placeholder="5장의 주요 내용 요약 및 독서 기록을 작성하세요..."></textarea>
+        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
       </div>
     </div>
 
-    <!-- 2. 전체 독서 감상문 페이지 -->
+    <!-- 2. 종합 독서 감상문 -->
     <div id="review-page" class="page">
-      <h3>✍️ 종합 독서 감상문</h3>
-      <p style="font-size: 0.9rem; color: #7f8c8d;">책 전체를 읽고 느낀 점, 깨달은 점, 앞으로 실천할 환경 활동 등을 정리해 보세요.</p>
+      <div class="page-header">
+        <h3>✍️ 종합 독서 감상문</h3>
+        <p>책 전체를 읽고 느낀 종합적인 소감과 실천 다짐을 적어보세요.</p>
+      </div>
       
-      <div style="margin-bottom: 1rem;">
-        <label for="overall-rating"><strong>전체 도서 평점:</strong> </label>
-        <input type="number" id="overall-rating" min="0" max="5" step="0.1" placeholder="0.0" style="width: 70px; padding: 0.4rem; border-radius: 4px; border: 1px solid var(--border-color); text-align: center; background: var(--bg-color); color: var(--text-color);"> / 5.0
+      <div class="setting-card">
+        <strong>전체 도서 평점</strong>
+        <div class="rating-box">
+          <input type="number" id="overall-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0 점
+        </div>
       </div>
 
-      <textarea id="overall-review" style="height: 250px;" placeholder="이 책을 읽고 환경에 대해 새롭게 알게 된 점이나 느낀 점을 자유롭게 작성해 보세요..."></textarea>
+      <textarea id="overall-review" style="height: 280px;" placeholder="일상 속 나의 소비와 환경의 연결 고리에 대해 깨달은 점을 종합해서 적어보세요..."></textarea>
     </div>
 
-    <!-- 3. 독서 퀴즈 페이지 (타임어택) -->
+    <!-- 3. 독서 확인 퀴즈 (랭킹 제로/독립 실행) -->
     <div id="quiz-page" class="page">
-      <h3>⚡ 독서 확인 퀴즈</h3>
+      <div class="page-header">
+        <h3>⚡ 독서 확인 퀴즈</h3>
+        <p>책의 내용을 얼마나 이해했는지 문제 풀이를 통해 점수를 확인하세요.</p>
+      </div>
       
-      <div id="quiz-start-screen">
-        <p>책 내용을 잘 이해했는지 테스트해 보세요. 시작 버튼을 누르면 타이머가 작동합니다!</p>
-        <button onclick="startQuiz()" style="padding: 10px 20px; background: var(--secondary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">퀴즈 시작</button>
+      <div id="quiz-start-screen" style="text-align: center; padding: 2rem 0;">
+        <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">총 3문항의 퀴즈가 준비되어 있습니다.</p>
+        <button onclick="startQuiz()" class="primary-btn">퀴즈 풀기 시작</button>
       </div>
 
       <div id="quiz-body" style="display: none;">
-        <div class="timer-bar">⏱️ 경과 시간: <span id="timer">0.0</span>초</div>
-        <h4 id="question-text">질문 내용이 여기에 들어갑니다.</h4>
+        <div class="timer-badge">⏱️ 소요 시간: <span id="timer">0.0</span>초</div>
+        <h4 id="question-text" style="font-size: 1.2rem; margin-bottom: 1.2rem;">질문이 들어갑니다.</h4>
         <div id="options-container"></div>
       </div>
 
-      <div id="quiz-result-screen" style="display: none; text-align: center;">
-        <h4>🎉 퀴즈를 완료했습니다!</h4>
-        <p id="quiz-result-text" style="font-size: 1.2rem; font-weight: bold;"></p>
-        <button onclick="resetQuiz()" style="padding: 10px 20px; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">다시 풀기</button>
+      <div id="quiz-result-screen" style="display: none; text-align: center; padding: 2rem 0;">
+        <h4 style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎉 수고하셨습니다!</h4>
+        <p id="quiz-result-text" style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1.5rem;"></p>
+        <button onclick="resetQuiz()" class="primary-btn">다시 풀기</button>
       </div>
     </div>
 
-    <!-- 4. 설정 페이지 -->
+    <!-- 4. 환경 설정 (글꼴 변경 기능 정상화) -->
     <div id="settings-page" class="page">
-      <h3>⚙️ 환경 설정</h3>
+      <div class="page-header">
+        <h3>⚙️ 개인화 설정</h3>
+        <p>원하는 테마와 글꼴, 글씨 크기로 화면 환경을 자유롭게 조절하세요.</p>
+      </div>
       
-      <div class="setting-group">
-        <label><strong>화면 테마:</strong></label>
-        <button onclick="setTheme('light')" style="padding: 8px 15px; cursor: pointer;">☀️ 라이트 모드</button>
-        <button onclick="setTheme('dark')" style="padding: 8px 15px; cursor: pointer;">🌙 다크 모드</button>
+      <div class="setting-card">
+        <strong>화면 테마</strong>
+        <div>
+          <button onclick="setTheme('light')" class="primary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">☀️ 라이트</button>
+          <button onclick="setTheme('dark')" class="primary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #334155;">🌙 다크</button>
+        </div>
       </div>
 
-      <div class="setting-group">
-        <label for="font-size-select"><strong>글자 크기:</strong></label>
-        <select id="font-size-select" onchange="changeFontSize(this.value)">
-          <option value="14px">작게 (14px)</option>
-          <option value="16px" selected>보통 (16px)</option>
-          <option value="18px">크게 (18px)</option>
-          <option value="20px">매우 크게 (20px)</option>
+      <div class="setting-card">
+        <label for="font-family-select"><strong>글꼴 변경</strong></label>
+        <select id="font-family-select" onchange="changeFontFamily(this.value)">
+          <option value="'Noto Sans KR', sans-serif">기본 고딕 (Noto Sans)</option>
+          <option value="'Nanum Gothic', sans-serif">나눔 고딕 (Nanum Gothic)</option>
+          <option value="'Gowun Batang', serif">고운 바탕 (명조/바탕체)</option>
         </select>
       </div>
 
-      <div class="setting-group">
-        <label for="font-family-select"><strong>글꼴 선택:</strong></label>
-        <select id="font-family-select" onchange="changeFontFamily(this.value)">
-          <option value="'Noto Sans KR', sans-serif">기본 (Noto Sans)</option>
-          <option value="'Malgun Gothic', sans-serif">맑은 고딕</option>
-          <option value="'Nanum Gothic', sans-serif">나눔 고딕</option>
-          <option value="sans-serif">고딕체 (System)</option>
+      <div class="setting-card">
+        <label for="font-size-select"><strong>글자 크기</strong></label>
+        <select id="font-size-select" onchange="changeFontSize(this.value)">
+          <option value="15px">작게 (15px)</option>
+          <option value="16px" selected>보통 (16px)</option>
+          <option value="18px">크게 (18px)</option>
+          <option value="20px">매우 크게 (20px)</option>
         </select>
       </div>
     </div>
@@ -327,23 +463,51 @@
 
   <script>
     // -------------------------------------------------------------
-    // 퀴즈 데이터
+    // 5점 초과 입력 방지 (유효성 검사)
+    // -------------------------------------------------------------
+    function limitMaxRating(input) {
+      let val = parseFloat(input.value);
+      if (val > 5.0) {
+        alert("평점은 최대 5.0점까지만 입력할 수 있습니다.");
+        input.value = 5.0;
+      } else if (val < 0) {
+        input.value = 0.0;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 퀴즈 데이터 정의
     // -------------------------------------------------------------
     const quizData = [
       {
-        question: "1. 다음 중 생태계 파괴의 주요 원인 중 하나인 '외래종'에 대한 설명으로 옳은 것은?",
-        options: ["항상 생태계에 이롭다.", "고유 생태계의 먹이사슬을 교란시킬 수 있다.", "모든 외래종은 법적 처벌 대상이다.", "자연적으로만 이동한다."],
-        answer: 1
-      },
-      {
-        question: "2. 온실가스 증가로 인해 지구의 평균 기온이 상승하는 현상을 무엇이라 하나요?",
-        options: ["산성비", "지구 온난화", "사막화", "엘니뇨"],
-        answer: 1
-      },
-      {
-        question: "3. 바다로 유입되어 작게 부서진 미세 플라스틱이 생태계에 미치는 영향은?",
-        options: ["해양 생물에 흡수되어 먹이사슬에 남는다.", "물에 완전히 녹아 분해된다.", "바다를 깨끗하게 만든다.", "아무런 영향도 미치지 않는다."],
+        question: "1. 수입 과일인 '아보카도'나 '바나나'를 먹을 때 발생하는 주요 환경 문제는 무엇인가요?",
+        options: [
+          "긴 수송 과정에서 수송 수단이 배출하는 탄소 발자국",
+          "국내 수확 과일보다 비타민이 현저히 부족한 점",
+          "포장지가 존재하지 않아 쓰레기가 나오지 않는 점",
+          "생산할 때 물이 거의 소비되지 않는 점"
+        ],
         answer: 0
+      },
+      {
+        question: "2. 버려진 전자제품(휴대폰 등)에서 발생하는 '전자 쓰레기'의 주요 폐해는 무엇인가요?",
+        options: [
+          "자연 상태에서 1년 안에 완전히 분해된다.",
+          "중금속과 유독 물질이 토양과 수질을 심각하게 오염시킨다.",
+          "재활용이 매우 쉬워 환경 오염이 전혀 없다.",
+          "지구 온난화를 직접적으로 막아준다."
+        ],
+        answer: 1
+      },
+      {
+        question: "3. '패스트 패션'이 환경에 주는 안 좋은 영향으로 가장 적절한 것은?",
+        options: [
+          "옷을 오래 입어 옷 쓰레기가 줄어든다.",
+          "대량 생산과 폐기 과정에서 과도한 물 소비와 온실가스가 발생한다.",
+          "천연 섬유만 사용하므로 친환경적이다.",
+          "생산 노동자들에게 적정한 임금을 보장해 준다."
+        ],
+        answer: 1
       }
     ];
 
@@ -420,7 +584,7 @@
 
       document.getElementById('quiz-body').style.display = 'none';
       document.getElementById('quiz-result-screen').style.display = 'block';
-      document.getElementById('quiz-result-text').innerText = `총 점수: ${score}점 / 풀이 시간: ${finalTime}초`;
+      document.getElementById('quiz-result-text').innerText = `획득 점수: ${score}점 / 30점 만점 (소요 시간: ${finalTime}초)`;
     }
 
     function resetQuiz() {
@@ -429,7 +593,7 @@
     }
 
     // -------------------------------------------------------------
-    // 설정 옵션 (테마, 글자 크기, 글꼴)
+    // 설정 옵션 (글꼴, 글자 크기, 테마 변경 적용)
     // -------------------------------------------------------------
     function setTheme(theme) {
       if (theme === 'dark') {
@@ -444,7 +608,10 @@
     }
 
     function changeFontFamily(font) {
+      // 루트 CSS 변수에 글꼴 등록
       document.documentElement.style.setProperty('--font-family', font);
+      // body 전체에 폰트 강제 적용
+      document.body.style.fontFamily = font;
     }
   </script>
 </body>
