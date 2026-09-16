@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>환경과 생태 쫌 아는 10대 - 로그인 & 커뮤니티 워크북</title>
+  <title>환경과 생태 쫌 아는 10대 - 커뮤니티 워크북</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,7 +62,7 @@
     .page-header h3 { margin: 0 0 0.3rem 0; font-size: 1.15rem; }
     .page-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
 
-    .chapter-card, .forum-post-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; }
+    .chapter-card, .forum-post-card, .user-stat-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; }
     .rating-box { display: flex; align-items: center; gap: 0.4rem; background: var(--bg-color); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 600; font-size: 0.8rem; }
     .rating-box input[type="number"], .input-field { padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-main); font-family: inherit !important; width: 100%; margin-bottom: 0.6rem; font-size: 0.875rem; }
     
@@ -80,15 +80,40 @@
     
     .option-btn { display: block; width: 100%; padding: 0.6rem 0.8rem; margin: 0.4rem 0; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; text-align: left; cursor: pointer; font-family: inherit !important; font-size: 0.875rem; }
     .option-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* 하단 오른쪽 플로팅 글쓰기 버튼 (+) */
+    .fab-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      color: white;
+      font-size: 28px;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 80;
+    }
+    .fab-btn:hover { background-color: var(--primary-hover); transform: scale(1.05); }
+
+    /* 글작성 모달 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--card-bg); width: 90%; max-width: 500px; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); }
   </style>
 
   <!-- Firebase SDK 모듈 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase 설정을 여기에 연결하세요
     const firebaseConfig = {
       apiKey: "AIzaSyB3vpk4KQ8cUykmEh-OrrfvMlqKZdRpc-8",
       authDomain: "bugur-king.firebaseapp.com",
@@ -105,11 +130,12 @@
     const googleProvider = new GoogleAuthProvider();
 
     let currentUser = null;
+    let allForumPosts = [];
 
-    // 인증 상태 감지
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       updateUserUI();
+      if(user) updateMyProfileStats();
     });
 
     function updateUserUI() {
@@ -122,6 +148,8 @@
         headerInfo.innerHTML = `<span style="font-size:0.85rem; font-weight:bold; margin-right:6px;">👤 ${displayName}님</span> <button onclick="window.handleLogout()" class="primary-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem; background:#ef4444;">로그아웃</button>`;
         navLoginBtn.innerText = '👤 내 계정 정보';
         if(quizStatus) quizStatus.innerText = `도전자: ${displayName}님`;
+        document.getElementById('profile-nickname-display').innerText = displayName;
+        document.getElementById('profile-email-display').innerText = currentUser.email;
       } else {
         headerInfo.innerHTML = `<button onclick="window.navigate('login-page')" class="primary-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;">로그인</button>`;
         navLoginBtn.innerText = '🔑 로그인 / 회원가입';
@@ -129,7 +157,24 @@
       }
     }
 
-    // 전역 함수로 함수 등록 (HTML onclick 지원용)
+    // 내 계정 정보 통계 업데이트
+    window.updateMyProfileStats = () => {
+      if(!currentUser) return;
+      const displayName = currentUser.displayName || currentUser.email.split('@')[0];
+      
+      // 1. 포럼 작성글 수 계산
+      const myPostsCount = allForumPosts.filter(p => p.author === displayName).length;
+      document.getElementById('my-forum-count').innerText = `${myPostsCount}개`;
+
+      // 2. 챕터 요약 작성 수 계산
+      let writtenChapters = 0;
+      for (let i = 1; i <= 8; i++) {
+        const text = document.getElementById(`chapter-text-${i}`)?.value.trim();
+        if (text) writtenChapters++;
+      }
+      document.getElementById('my-chapter-progress').innerText = `${writtenChapters} / 8 챕터 작성 완료`;
+    };
+
     window.toggleAuthMode = (mode) => {
       if (mode === 'signup') {
         document.getElementById('auth-title').innerText = '📝 회원가입';
@@ -189,10 +234,14 @@
       });
     };
 
-    // 실시간 포럼 (Realtime DB)
+    // 실시간 포럼 글 등록 (모달 창에서 호출)
     window.submitForumPost = async () => {
-      if (!currentUser) return alert('로그인 후 글을 작성할 수 있습니다.');
-      const content = document.getElementById('forum-content').value.trim();
+      if (!currentUser) {
+        alert('로그인 후 글을 작성할 수 있습니다.');
+        window.navigate('login-page');
+        return;
+      }
+      const content = document.getElementById('modal-forum-content').value.trim();
       if (!content) return alert('내용을 입력하세요.');
 
       const nickname = currentUser.displayName || currentUser.email.split('@')[0];
@@ -203,19 +252,27 @@
         date: new Date().toLocaleDateString()
       });
 
-      document.getElementById('forum-content').value = '';
+      document.getElementById('modal-forum-content').value = '';
+      window.closeForumModal();
+      alert('포럼 글이 등록되었습니다!');
     };
 
-    // 포럼 글 실시간 동기화
+    // 포럼 글 실시간 동기화 리스너
     const forumRef = ref(db, 'forum_posts');
     onValue(forumRef, (snapshot) => {
       const container = document.getElementById('forum-posts-container');
       if (!container) return;
       container.innerHTML = '';
       const data = snapshot.val();
-      if (!data) return;
+      if (!data) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">등록된 포럼 글이 없습니다. + 버튼을 눌러 첫 글을 남겨보세요!</p>';
+        allForumPosts = [];
+        return;
+      }
 
-      const posts = Object.values(data).reverse();
+      allForumPosts = Object.values(data);
+      const posts = [...allForumPosts].reverse();
+
       posts.forEach(p => {
         container.innerHTML += `
           <div class="forum-post-card">
@@ -226,9 +283,11 @@
             <div>${p.content}</div>
           </div>`;
       });
+
+      if(currentUser) window.updateMyProfileStats();
     });
 
-    // 실시간 랭킹 (Leaderboard) 등록 및 조회
+    // 퀴즈 실시간 랭킹 저장 및 리스너
     window.saveQuizScore = async (score, finalTime) => {
       if (!currentUser) return;
       const nickname = currentUser.displayName || currentUser.email.split('@')[0];
@@ -247,12 +306,11 @@
       }
 
       rankList.sort((a, b) => b.score - a.score || a.time - b.time);
-      rankList = rankList.slice(0, 10); // TOP 10 유지
+      rankList = rankList.slice(0, 10);
 
       await set(leaderRef, rankList);
     };
 
-    // 실시간 랭킹 자동 갱신 리스너
     const leaderboardRef = ref(db, 'leaderboard');
     onValue(leaderboardRef, (snapshot) => {
       const tbody = document.getElementById('ranking-list');
@@ -290,8 +348,9 @@
       <button style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-muted);" onclick="toggleSidebar()">✕</button>
     </div>
     <div class="sidebar-nav">
+      <button onclick="navigate('profile-page', this)">👤 내 계정 정보</button>
       <button onclick="navigate('login-page', this)" id="nav-login-btn">🔑 로그인 / 회원가입</button>
-      <button onclick="navigate('chapter-page', this)" class="active">📚 챕터별 기록</button>
+      <button onclick="navigate('chapter-page', this)" class="active">📚 챕터별 기록 (8장)</button>
       <button onclick="navigate('review-page', this)">✍️ 종합 감상문</button>
       <button onclick="navigate('quiz-page', this)">⚡ 무작위 퀴즈 & 랭킹</button>
       <button onclick="navigate('forum-page', this)">💬 온라인 포럼</button>
@@ -300,14 +359,30 @@
   </div>
 
   <div class="container">
-    <!-- 0. 로그인 및 회원가입 페이지 -->
+
+    <!-- 👤 내 계정 정보 페이지 -->
+    <div id="profile-page" class="page">
+      <div class="page-header">
+        <h3>👤 내 계정 정보 & 활동 현황</h3>
+      </div>
+      <div class="user-stat-card">
+        <p><strong>닉네임:</strong> <span id="profile-nickname-display">로그인 필요</span></p>
+        <p><strong>이메일:</strong> <span id="profile-email-display">로그인 필요</span></p>
+      </div>
+      <div class="user-stat-card" style="background:var(--bg-color);">
+        <h4>📊 독서 및 커뮤니티 활동 달성도</h4>
+        <p><strong>📚 챕터 기록 진행률:</strong> <span id="my-chapter-progress" style="color:var(--primary); font-weight:bold;">0 / 8 챕터 작성 완료</span></p>
+        <p><strong>💬 내가 작성한 포럼 글:</strong> <span id="my-forum-count" style="color:var(--secondary); font-weight:bold;">0개</span></p>
+      </div>
+    </div>
+
+    <!-- 🔑 로그인 및 회원가입 페이지 -->
     <div id="login-page" class="page">
       <div class="page-header">
         <h3 id="auth-title">🔒 로그인</h3>
         <p>계정이 없으시면 회원가입 후 이용할 수 있습니다.</p>
       </div>
 
-      <!-- 로그인 폼 -->
       <div id="login-form-box" style="max-width:340px; margin:0 auto;">
         <input type="text" id="login-username" class="input-field" placeholder="이메일 아이디">
         <input type="password" id="login-password" class="input-field" placeholder="비밀번호">
@@ -323,7 +398,6 @@
         </p>
       </div>
 
-      <!-- 회원가입 폼 -->
       <div id="signup-form-box" style="display:none; max-width:340px; margin:0 auto;">
         <input type="text" id="signup-username" class="input-field" placeholder="이메일 아이디">
         <input type="password" id="signup-password" class="input-field" placeholder="비밀번호">
@@ -341,35 +415,79 @@
       </div>
     </div>
 
-    <!-- 1. 챕터별 평가 -->
+    <!-- 📚 1. 챕터별 평가 (1~8 전체 챕터 복구 완료) -->
     <div id="chapter-page" class="page active">
       <div class="page-header">
-        <h3>📚 챕터별 평가 및 요약</h3>
-        <p>최대 <strong>5.0점</strong> 범위 내에서 평점을 매기고 요약을 남겨보세요.</p>
+        <h3>📚 챕터별 평가 및 요약 (총 8개 챕터)</h3>
+        <p>각 챕터를 읽고 핵심 내용과 평점을 남겨보세요.</p>
       </div>
 
       <div class="chapter-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-          <strong>1. 컵라면과 젓가락 (자원과 쓰레기)</strong>
-          <div class="rating-box">
-            평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0
-          </div>
+          <strong>1. 컵라면과 플랜테이션 (자원과 쓰레기)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
         </div>
-        <textarea placeholder="핵심 내용을 입력하세요..."></textarea>
+        <textarea id="chapter-text-1" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
       </div>
 
       <div class="chapter-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-          <strong>2. 바나나와 아보카도 (수입 식품과 탄소발자국)</strong>
-          <div class="rating-box">
-            평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0
-          </div>
+          <strong>2. 바나나와 생물다양성 (단일 재배의 위기)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
         </div>
-        <textarea placeholder="핵심 내용을 입력하세요..."></textarea>
+        <textarea id="chapter-text-2" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>3. 아보카도와 로컬 푸드 (탄소발자국과 물 부족)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-3" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>4. 생수병과 플라스틱 쓰레기 (미세 플라스틱)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-4" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>5. 휴대폰과 전자 쓰레기 (자원 순환과 폐기물)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-5" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>6. 패스트 패션과 노동자 (의류 쓰레기와 인권)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-6" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>7. 화학물질의 역습과 사회의 책임 (안전과 기업 규제)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-7" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>8. 롱패딩과 동물권 (희생당하는 동물들)</strong>
+          <div class="rating-box">평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0</div>
+        </div>
+        <textarea id="chapter-text-8" placeholder="핵심 내용을 입력하세요..." oninput="window.updateMyProfileStats()"></textarea>
       </div>
     </div>
 
-    <!-- 2. 종합 감상문 -->
+    <!-- ✍️ 2. 종합 감상문 -->
     <div id="review-page" class="page">
       <div class="page-header">
         <h3>✍️ 종합 독서 감상문</h3>
@@ -383,7 +501,7 @@
       <textarea style="height: 150px;" placeholder="종합 소감을 적어보세요..."></textarea>
     </div>
 
-    <!-- 3. 퀴즈 & 실시간 온라인 랭킹 -->
+    <!-- ⚡ 3. 퀴즈 & 실시간 온라인 랭킹 -->
     <div id="quiz-page" class="page">
       <div class="page-header">
         <h3>⚡ 무작위 퀴즈 & 명예의 전당 (랭킹)</h3>
@@ -424,22 +542,17 @@
       </table>
     </div>
 
-    <!-- 4. 온라인 포럼 -->
+    <!-- 💬 4. 온라인 포럼 -->
     <div id="forum-page" class="page">
       <div class="page-header">
         <h3>💬 온라인 독서 포럼</h3>
-        <p>전국의 독자들과 생각을 자유롭게 공유해보세요.</p>
-      </div>
-
-      <div class="chapter-card" style="margin-bottom: 1.5rem;">
-        <textarea id="forum-content" placeholder="로그인 후 의견을 입력해 주세요..." style="height:70px; margin-bottom:0.5rem;"></textarea>
-        <button onclick="submitForumPost()" class="primary-btn" style="width:100%;">글 등록하기</button>
+        <p>전국의 독자들과 생각을 자유롭게 공유해보세요. 오른쪽 하단의 <strong>(+) 버튼</strong>으로 글을 쓸 수 있습니다.</p>
       </div>
 
       <div id="forum-posts-container"></div>
     </div>
 
-    <!-- 5. 환경 설정 -->
+    <!-- ⚙️ 5. 환경 설정 -->
     <div id="settings-page" class="page">
       <div class="page-header">
         <h3>⚙️ 개인화 설정</h3>
@@ -462,8 +575,30 @@
     </div>
   </div>
 
+  <!-- 하단 오른쪽 플로팅 글쓰기 버튼 (+) -->
+  <button class="fab-btn" onclick="openForumModal()">+</button>
+
+  <!-- 글작성 모달 팝업 -->
+  <div class="modal-overlay" id="forum-modal">
+    <div class="modal-box">
+      <h4 style="margin-top:0;">📝 포럼 글쓰기</h4>
+      <textarea id="modal-forum-content" placeholder="함께 공유할 의견을 작성하세요..." style="height:120px; margin-bottom:1rem;"></textarea>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button onclick="closeForumModal()" class="primary-btn" style="background:#94a3b8;">취소</button>
+        <button onclick="submitForumPost()" class="primary-btn">등록하기</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // 네비게이션 및 UI 동적 조작
+    function openForumModal() {
+      document.getElementById('forum-modal').classList.add('active');
+    }
+
+    function closeForumModal() {
+      document.getElementById('forum-modal').classList.remove('active');
+    }
+
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
       document.getElementById('sidebar-overlay').classList.toggle('active');
@@ -482,11 +617,12 @@
       else if (parseFloat(input.value) < 0) input.value = 0.0;
     }
 
-    // 퀴즈 시스템
+    // 퀴즈 시스템 (8개 챕터 기반 확장)
     const questionBank = [
       { q: "수입 과일(바나나, 아보카도)의 주요 환경 문제는?", opts: ["장거리 수송의 탄소발자국", "영양소 파괴", "포장 쓰레기 없음", "물 사용 안함"], ans: 0 },
       { q: "전자 쓰레기의 주요 위험성은?", opts: ["1년 내 자연분해", "중금속으로 인한 토양/수질 오염", "재활용 완벽함", "지구온난화 방지"], ans: 1 },
-      { q: "미세 플라스틱의 주요 원인은?", opts: ["부서진 플라스틱 쓰레기", "천연 비누", "종이 상자", "유리병"], ans: 0 }
+      { q: "미세 플라스틱의 주요 원인은?", opts: ["부서진 플라스틱 쓰레기", "천연 비누", "종이 상자", "유리병"], ans: 0 },
+      { q: "패스트 패션이 일으키는 문제가 아닌 것은?", opts: ["대량의 의류 폐기물", "수질 오염 및 노동 착취", "탄소 배출 증가", "생물다양성 보존"], ans: 3 }
     ];
     let currentQ = [], qIdx = 0, score = 0, timer = null, time = 0;
 
@@ -524,7 +660,6 @@
       document.getElementById('quiz-result-screen').style.display = 'block';
       document.getElementById('quiz-result-text').innerText = `획득 점수: ${score}점 / 30점 (${finalTime}초)`;
 
-      // Firebase Realtime DB에 랭킹 저장
       await window.saveQuizScore(score, finalTime);
     }
 
@@ -533,7 +668,6 @@
       document.getElementById('quiz-start-screen').style.display = 'block';
     }
 
-    // 설정
     function setTheme(t) { document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : ''); }
     function changeFontFamily(f) { document.body.style.fontFamily = f; }
   </script>
