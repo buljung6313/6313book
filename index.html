@@ -81,7 +81,7 @@
     .option-btn { display: block; width: 100%; padding: 0.6rem 0.8rem; margin: 0.4rem 0; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; text-align: left; cursor: pointer; font-family: inherit !important; font-size: 0.875rem; }
     .option-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-    /* 하단 오른쪽 플로팅 글쓰기 버튼 (+) */
+    /* 하단 오른쪽 플로팅 글쓰기 버튼 (+) - 기본적으로 숨김 처리 */
     .fab-btn {
       position: fixed;
       bottom: 25px;
@@ -95,11 +95,12 @@
       border: none;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       cursor: pointer;
-      display: flex;
+      display: none; /* 기본 숨김 */
       align-items: center;
       justify-content: center;
       z-index: 80;
     }
+    .fab-btn.show { display: flex; }
     .fab-btn:hover { background-color: var(--primary-hover); transform: scale(1.05); }
 
     /* 글작성 모달 */
@@ -135,7 +136,7 @@
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       updateUserUI();
-      if(user) updateMyProfileStats();
+      if(user) window.updateMyProfileStats();
     });
 
     function updateUserUI() {
@@ -157,16 +158,14 @@
       }
     }
 
-    // 내 계정 정보 통계 업데이트
+    // 통계 업데이트
     window.updateMyProfileStats = () => {
       if(!currentUser) return;
       const displayName = currentUser.displayName || currentUser.email.split('@')[0];
       
-      // 1. 포럼 작성글 수 계산
       const myPostsCount = allForumPosts.filter(p => p.author === displayName).length;
       document.getElementById('my-forum-count').innerText = `${myPostsCount}개`;
 
-      // 2. 챕터 요약 작성 수 계산
       let writtenChapters = 0;
       for (let i = 1; i <= 8; i++) {
         const text = document.getElementById(`chapter-text-${i}`)?.value.trim();
@@ -234,30 +233,35 @@
       });
     };
 
-    // 실시간 포럼 글 등록 (모달 창에서 호출)
+    // 포럼 글 저장 기능 구현 및 바인딩
     window.submitForumPost = async () => {
       if (!currentUser) {
         alert('로그인 후 글을 작성할 수 있습니다.');
+        window.closeForumModal();
         window.navigate('login-page');
         return;
       }
       const content = document.getElementById('modal-forum-content').value.trim();
       if (!content) return alert('내용을 입력하세요.');
 
-      const nickname = currentUser.displayName || currentUser.email.split('@')[0];
-      const postsRef = ref(db, 'forum_posts');
-      await push(postsRef, {
-        author: nickname,
-        content: content,
-        date: new Date().toLocaleDateString()
-      });
+      try {
+        const nickname = currentUser.displayName || currentUser.email.split('@')[0];
+        const postsRef = ref(db, 'forum_posts');
+        await push(postsRef, {
+          author: nickname,
+          content: content,
+          date: new Date().toLocaleDateString()
+        });
 
-      document.getElementById('modal-forum-content').value = '';
-      window.closeForumModal();
-      alert('포럼 글이 등록되었습니다!');
+        document.getElementById('modal-forum-content').value = '';
+        window.closeForumModal();
+        alert('포럼 글이 등록되었습니다!');
+      } catch(err) {
+        alert('글 등록 중 오류가 발생했습니다: ' + err.message);
+      }
     };
 
-    // 포럼 글 실시간 동기화 리스너
+    // 실시간 포럼 글 리스너
     const forumRef = ref(db, 'forum_posts');
     onValue(forumRef, (snapshot) => {
       const container = document.getElementById('forum-posts-container');
@@ -287,7 +291,7 @@
       if(currentUser) window.updateMyProfileStats();
     });
 
-    // 퀴즈 실시간 랭킹 저장 및 리스너
+    // 퀴즈 랭킹 기능
     window.saveQuizScore = async (score, finalTime) => {
       if (!currentUser) return;
       const nickname = currentUser.displayName || currentUser.email.split('@')[0];
@@ -415,7 +419,7 @@
       </div>
     </div>
 
-    <!-- 📚 1. 챕터별 평가 (1~8 전체 챕터 복구 완료) -->
+    <!-- 📚 1. 챕터별 평가 -->
     <div id="chapter-page" class="page active">
       <div class="page-header">
         <h3>📚 챕터별 평가 및 요약 (총 8개 챕터)</h3>
@@ -575,8 +579,8 @@
     </div>
   </div>
 
-  <!-- 하단 오른쪽 플로팅 글쓰기 버튼 (+) -->
-  <button class="fab-btn" onclick="openForumModal()">+</button>
+  <!-- 온라인 포럼 전용 플로팅 글쓰기 버튼 (+) -->
+  <button class="fab-btn" id="forum-fab-btn" onclick="openForumModal()">+</button>
 
   <!-- 글작성 모달 팝업 -->
   <div class="modal-overlay" id="forum-modal">
@@ -585,7 +589,7 @@
       <textarea id="modal-forum-content" placeholder="함께 공유할 의견을 작성하세요..." style="height:120px; margin-bottom:1rem;"></textarea>
       <div style="display:flex; justify-content:flex-end; gap:8px;">
         <button onclick="closeForumModal()" class="primary-btn" style="background:#94a3b8;">취소</button>
-        <button onclick="submitForumPost()" class="primary-btn">등록하기</button>
+        <button onclick="window.submitForumPost()" class="primary-btn">등록하기</button>
       </div>
     </div>
   </div>
@@ -604,11 +608,21 @@
       document.getElementById('sidebar-overlay').classList.toggle('active');
     }
 
+    // 페이지 이동 처리 및 포럼 플로팅 버튼 제어
     function navigate(pageId, btn) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
       if (btn) btn.classList.add('active');
+      
+      // 온라인 포럼(forum-page)에 들어왔을 때만 '+' 버튼 노출
+      const fabBtn = document.getElementById('forum-fab-btn');
+      if (pageId === 'forum-page') {
+        fabBtn.classList.add('show');
+      } else {
+        fabBtn.classList.remove('show');
+      }
+
       if (document.getElementById('sidebar').classList.contains('active')) toggleSidebar();
     }
 
@@ -617,7 +631,7 @@
       else if (parseFloat(input.value) < 0) input.value = 0.0;
     }
 
-    // 퀴즈 시스템 (8개 챕터 기반 확장)
+    // 퀴즈 시스템
     const questionBank = [
       { q: "수입 과일(바나나, 아보카도)의 주요 환경 문제는?", opts: ["장거리 수송의 탄소발자국", "영양소 파괴", "포장 쓰레기 없음", "물 사용 안함"], ans: 0 },
       { q: "전자 쓰레기의 주요 위험성은?", opts: ["1년 내 자연분해", "중금속으로 인한 토양/수질 오염", "재활용 완벽함", "지구온난화 방지"], ans: 1 },
