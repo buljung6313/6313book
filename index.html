@@ -3,119 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>환경과 생태 쫌 아는 10대</title>
+  <title>환경과 생태 쫌 아는 10대 - 로그인 & 커뮤니티 워크북</title>
   
-  <!-- Pico CSS 어두운 테마 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      background-color: #111827;
-      color: #f3f4f6;
-    }
-    
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid #1f2937;
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --secondary: #3b82f6;
+      --border-color: #e2e8f0;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      --font-family: 'Noto Sans KR', sans-serif;
+      --font-size: 14px;
     }
 
-    /* 사이드바 스타일 */
-    .sidebar-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 100;
-      display: none;
+    [data-theme="dark"] {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #10b981;
+      --primary-hover: #34d399;
+      --secondary: #60a5fa;
+      --border-color: #334155;
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
-    .sidebar-overlay.active { display: block; }
-    
-    .sidebar {
-      position: fixed;
-      top: 0; left: -280px; width: 280px; height: 100%;
-      background-color: #1f2937;
-      z-index: 101;
-      padding: 1.5rem;
-      transition: left 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
+
+    * { box-sizing: border-box; transition: background-color 0.2s, color 0.2s; }
+    body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-family) !important; font-size: var(--font-size); margin: 0; padding: 0; line-height: 1.5; }
+
+    header { background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 90; }
+    .header-left { display: flex; align-items: center; }
+    .menu-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-main); cursor: pointer; margin-right: 0.75rem; }
+    .brand-title { font-size: 1.1rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* 사이드바 */
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 100; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+    .sidebar-overlay.active { opacity: 1; visibility: visible; }
+    .sidebar { position: fixed; top: 0; left: -250px; width: 250px; height: 100%; background-color: var(--card-bg); border-right: 1px solid var(--border-color); z-index: 101; padding: 1.25rem; display: flex; flex-direction: column; transition: left 0.3s; }
     .sidebar.active { left: 0; }
-    .sidebar button {
-      background: transparent;
-      border: 1px solid #374151;
-      color: #f3f4f6;
-      text-align: left;
-      width: 100%;
-      margin: 0;
-    }
-    .sidebar button:hover {
-      background-color: #06b6d4;
-      border-color: #06b6d4;
-    }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.4rem; }
+    .sidebar-nav button { background: transparent; border: none; color: var(--text-main); padding: 0.6rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.875rem; cursor: pointer; text-align: left; font-family: inherit !important; }
+    .sidebar-nav button.active { background-color: var(--primary); color: #ffffff; }
 
-    /* 폼 카드 */
-    .auth-card {
-      max-width: 450px;
-      margin: 4rem auto;
-      padding: 2rem;
-      background-color: #1f2937;
-      border-radius: 12px;
-      border: 1px solid #374151;
-    }
+    /* 레이아웃 & 카드 */
+    .container { max-width: 760px; margin: 1.5rem auto; padding: 0 1rem; }
+    .page { display: none; background: var(--card-bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); }
+    .page.active { display: block; }
+    .page-header { margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.6rem; }
+    .page-header h3 { margin: 0 0 0.3rem 0; font-size: 1.15rem; }
+    .page-header p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
 
-    input[type="email"], input[type="password"], input[type="text"] {
-      background-color: #111827;
-      border: 1px solid #374151;
-      color: #fff;
-      margin-bottom: 1rem;
-    }
+    .chapter-card, .forum-post-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; }
+    .rating-box { display: flex; align-items: center; gap: 0.4rem; background: var(--bg-color); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); font-weight: 600; font-size: 0.8rem; }
+    .rating-box input[type="number"], .input-field { padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-main); font-family: inherit !important; width: 100%; margin-bottom: 0.6rem; font-size: 0.875rem; }
+    
+    textarea { width: 100%; height: 80px; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); font-family: inherit !important; resize: vertical; font-size: 0.875rem; }
 
-    .btn-cyan {
-      background-color: #06b6d4;
-      border: none;
-      color: #fff;
-      font-weight: bold;
-    }
-    .btn-cyan:hover {
-      background-color: #0891b2;
-    }
+    .primary-btn { padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: inherit !important; font-size: 0.875rem; }
+    .primary-btn:hover { background: var(--primary-hover); }
 
-    .btn-google {
-      background-color: #ffffff;
-      color: #333333;
-      border: 1px solid #cccccc;
-      font-weight: bold;
-      margin-top: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-google:hover {
-      background-color: #f1f1f1;
-      color: #000;
-    }
+    .btn-google { background-color: #ffffff; color: #333333; border: 1px solid #cccccc; font-weight: bold; width: 100%; padding: 0.5rem; font-size: 0.85rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 0.4rem; }
+    .btn-google:hover { background-color: #f1f1f1; }
 
-    .toggle-link {
-      color: #38bdf8;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-
-    .page-content { display: none; }
-    .page-content.active { display: block; }
+    .ranking-table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; font-size: 0.875rem; }
+    .ranking-table th, .ranking-table td { padding: 0.6rem; text-align: center; border-bottom: 1px solid var(--border-color); }
+    .ranking-table th { background-color: var(--bg-color); font-weight: 700; }
+    
+    .option-btn { display: block; width: 100%; padding: 0.6rem 0.8rem; margin: 0.4rem 0; background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; text-align: left; cursor: pointer; font-family: inherit !important; font-size: 0.875rem; }
+    .option-btn:hover { border-color: var(--primary); color: var(--primary); }
   </style>
 
-  <!-- Firebase SDK (CDN) -->
+  <!-- Firebase SDK 모듈 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // Firebase 설정을 여기에 연결하세요
     const firebaseConfig = {
       apiKey: "AIzaSyB3vpk4KQ8cUykmEh-OrrfvMlqKZdRpc-8",
       authDomain: "bugur-king.firebaseapp.com",
@@ -123,8 +96,7 @@
       projectId: "bugur-king",
       storageBucket: "bugur-king.firebasestorage.app",
       messagingSenderId: "550291650663",
-      appId: "1:550291650663:web:0f66287087dc0bfc487cc2",
-      measurementId: "G-LCSTLKGLJK"
+      appId: "1:550291650663:web:0f66287087dc0bfc487cc2"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -134,213 +106,436 @@
 
     let currentUser = null;
 
-    // 로그인 상태 감지
+    // 인증 상태 감지
     onAuthStateChanged(auth, (user) => {
-      const userInfoDiv = document.getElementById('user-info');
-      const sidebarForumBtn = document.getElementById('sidebar-forum-btn');
-      const sidebarRankBtn = document.getElementById('sidebar-rank-btn');
-
-      if (user) {
-        currentUser = user;
-        userInfoDiv.innerHTML = `👤 ${user.displayName || user.email}님 <button onclick="window.handleLogout()" style="padding:4px 10px; margin-left:10px; font-size:0.8rem;" class="secondary">로그아웃</button>`;
-        
-        // 로그인 성공 시 사이드바 메뉴 활성화
-        sidebarForumBtn.style.display = 'block';
-        sidebarRankBtn.style.display = 'block';
-
-        // 메인 인증화면 숨기고 자유 포럼 페이지로 이동
-        document.getElementById('auth-section').style.display = 'none';
-        showPage('forum-page');
-      } else {
-        currentUser = null;
-        userInfoDiv.innerText = "🔒 로그인 필요";
-        
-        // 비로그인 시 사이드바 포럼/랭킹 숨김
-        sidebarForumBtn.style.display = 'none';
-        sidebarRankBtn.style.display = 'none';
-
-        // 로그인 창 표시
-        document.getElementById('auth-section').style.display = 'block';
-        showPage('auth-section');
-      }
+      currentUser = user;
+      updateUserUI();
     });
 
-    // 폼 전환 (로그인 <-> 회원가입)
-    window.toggleAuthView = (view) => {
-      if(view === 'signup') {
-        document.getElementById('login-box').style.display = 'none';
-        document.getElementById('signup-box').style.display = 'block';
+    function updateUserUI() {
+      const headerInfo = document.getElementById('user-header-info');
+      const navLoginBtn = document.getElementById('nav-login-btn');
+      const quizStatus = document.getElementById('quiz-user-status');
+
+      if (currentUser) {
+        const displayName = currentUser.displayName || currentUser.email.split('@')[0];
+        headerInfo.innerHTML = `<span style="font-size:0.85rem; font-weight:bold; margin-right:6px;">👤 ${displayName}님</span> <button onclick="window.handleLogout()" class="primary-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem; background:#ef4444;">로그아웃</button>`;
+        navLoginBtn.innerText = '👤 내 계정 정보';
+        if(quizStatus) quizStatus.innerText = `도전자: ${displayName}님`;
       } else {
-        document.getElementById('signup-box').style.display = 'none';
-        document.getElementById('login-box').style.display = 'block';
+        headerInfo.innerHTML = `<button onclick="window.navigate('login-page')" class="primary-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;">로그인</button>`;
+        navLoginBtn.innerText = '🔑 로그인 / 회원가입';
+        if(quizStatus) quizStatus.innerText = '로그인 후 퀴즈 풀기에 참여할 수 있습니다.';
+      }
+    }
+
+    // 전역 함수로 함수 등록 (HTML onclick 지원용)
+    window.toggleAuthMode = (mode) => {
+      if (mode === 'signup') {
+        document.getElementById('auth-title').innerText = '📝 회원가입';
+        document.getElementById('login-form-box').style.display = 'none';
+        document.getElementById('signup-form-box').style.display = 'block';
+      } else {
+        document.getElementById('auth-title').innerText = '🔒 로그인';
+        document.getElementById('signup-form-box').style.display = 'none';
+        document.getElementById('login-form-box').style.display = 'block';
       }
     };
 
-    // 🌐 구글 로그인 처리
-    window.handleGoogleLogin = async () => {
-      try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (e) {
-        alert("구글 로그인 실패: " + e.message);
-      }
-    };
-
-    // 회원가입 처리
     window.handleSignup = async () => {
-      const email = document.getElementById('signup-email').value;
-      const pass = document.getElementById('signup-pass').value;
-      const nickname = document.getElementById('signup-nick').value;
-      if (!email || !pass || !nickname) return alert("모든 정보를 입력하세요.");
+      const email = document.getElementById('signup-username').value.trim();
+      const pass = document.getElementById('signup-password').value.trim();
+      const nickname = document.getElementById('signup-nickname').value.trim();
+      if (!email || !pass || !nickname) return alert('모든 정보를 입력하세요.');
 
       try {
         const res = await createUserWithEmailAndPassword(auth, email, pass);
         await updateProfile(res.user, { displayName: nickname });
-        alert("회원가입 완료!");
-      } catch (e) { alert("가입 실패: " + e.message); }
+        alert("회원가입이 완료되었습니다!");
+        window.navigate('chapter-page');
+      } catch (e) {
+        alert("가입 실패: " + e.message);
+      }
     };
 
-    // 이메일 로그인 처리
     window.handleLogin = async () => {
-      const email = document.getElementById('login-email').value;
-      const pass = document.getElementById('login-pass').value;
-      if (!email || !pass) return alert("아이디와 비밀번호를 입력하세요.");
+      const email = document.getElementById('login-username').value.trim();
+      const pass = document.getElementById('login-password').value.trim();
+      if (!email || !pass) return alert('아이디(이메일)와 비밀번호를 입력하세요.');
 
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-      } catch (e) { alert("로그인 실패: 비밀번호 또는 이메일을 확인해 주세요."); }
+        alert("로그인 성공!");
+        window.navigate('chapter-page');
+      } catch (e) {
+        alert("로그인 실패: 아이디 또는 비밀번호가 올바르지 않습니다.");
+      }
     };
 
-    // 로그아웃
-    window.handleLogout = () => signOut(auth);
+    window.handleGoogleLogin = async () => {
+      try {
+        await signInWithPopup(auth, googleProvider);
+        alert("Google 로그인 성공!");
+        window.navigate('chapter-page');
+      } catch (e) {
+        alert("Google 로그인 실패: " + e.message);
+      }
+    };
 
-    // 포럼 글쓰기
-    window.submitForum = async () => {
-      if (!currentUser) return alert("로그인이 필요합니다.");
-      const content = document.getElementById('forum-input').value;
-      if (!content) return;
-
-      const postsRef = ref(db, 'posts');
-      await push(postsRef, {
-        author: currentUser.displayName || currentUser.email,
-        content: content,
-        timestamp: Date.now()
+    window.handleLogout = () => {
+      signOut(auth).then(() => {
+        alert('로그아웃 되었습니다.');
+        window.navigate('login-page');
       });
-      document.getElementById('forum-input').value = '';
     };
 
-    // 포럼 실시간 데이터 로드
-    const postsRef = ref(db, 'posts');
-    onValue(postsRef, (snapshot) => {
+    // 실시간 포럼 (Realtime DB)
+    window.submitForumPost = async () => {
+      if (!currentUser) return alert('로그인 후 글을 작성할 수 있습니다.');
+      const content = document.getElementById('forum-content').value.trim();
+      if (!content) return alert('내용을 입력하세요.');
+
+      const nickname = currentUser.displayName || currentUser.email.split('@')[0];
+      const postsRef = ref(db, 'forum_posts');
+      await push(postsRef, {
+        author: nickname,
+        content: content,
+        date: new Date().toLocaleDateString()
+      });
+
+      document.getElementById('forum-content').value = '';
+    };
+
+    // 포럼 글 실시간 동기화
+    const forumRef = ref(db, 'forum_posts');
+    onValue(forumRef, (snapshot) => {
+      const container = document.getElementById('forum-posts-container');
+      if (!container) return;
+      container.innerHTML = '';
       const data = snapshot.val();
-      const div = document.getElementById('forum-list');
-      if (!data) { div.innerHTML = '<p>작성된 게시물이 없습니다.</p>'; return; }
-      
+      if (!data) return;
+
       const posts = Object.values(data).reverse();
-      div.innerHTML = posts.map(p => `
-        <article style="padding:15px; margin-bottom:12px; background-color:#1f2937; border:1px solid #374151; border-radius:8px;">
-          <strong style="color:#38bdf8;">👤 ${p.author}</strong>
-          <p style="margin-top:5px; margin-bottom:0;">${p.content}</p>
-        </article>
-      `).join('');
+      posts.forEach(p => {
+        container.innerHTML += `
+          <div class="forum-post-card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+              <strong>👤 ${p.author}</strong>
+              <span style="font-size:0.8rem; color:var(--text-muted);">${p.date}</span>
+            </div>
+            <div>${p.content}</div>
+          </div>`;
+      });
     });
+
+    // 실시간 랭킹 (Leaderboard) 등록 및 조회
+    window.saveQuizScore = async (score, finalTime) => {
+      if (!currentUser) return;
+      const nickname = currentUser.displayName || currentUser.email.split('@')[0];
+      const leaderRef = ref(db, 'leaderboard');
+      
+      const snapshot = await get(leaderRef);
+      let rankList = snapshot.exists() ? Object.values(snapshot.val()) : [];
+
+      const existingIdx = rankList.findIndex(r => r.nickname === nickname);
+      if (existingIdx !== -1) {
+        if (score > rankList[existingIdx].score || (score === rankList[existingIdx].score && finalTime < rankList[existingIdx].time)) {
+          rankList[existingIdx] = { nickname, score, time: finalTime };
+        }
+      } else {
+        rankList.push({ nickname, score, time: finalTime });
+      }
+
+      rankList.sort((a, b) => b.score - a.score || a.time - b.time);
+      rankList = rankList.slice(0, 10); // TOP 10 유지
+
+      await set(leaderRef, rankList);
+    };
+
+    // 실시간 랭킹 자동 갱신 리스너
+    const leaderboardRef = ref(db, 'leaderboard');
+    onValue(leaderboardRef, (snapshot) => {
+      const tbody = document.getElementById('ranking-list');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      const data = snapshot.val();
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4">등록된 랭킹이 없습니다.</td></tr>';
+        return;
+      }
+
+      data.forEach((item, index) => {
+        tbody.innerHTML += `<tr><td>${index + 1}</td><td>${item.nickname}</td><td>${item.score}점</td><td>${item.time}초</td></tr>`;
+      });
+    });
+
+    window.getCurrentUser = () => currentUser;
   </script>
 </head>
 <body>
 
-  <!-- 헤더 -->
   <header>
-    <div style="display:flex; align-items:center; gap:1rem;">
-      <button onclick="toggleSidebar()" class="secondary" style="margin:0; padding:4px 12px;">☰ 메뉴</button>
-      <h3 style="margin:0; color:#06b6d4;">🌱 환경과 생태 쫌 아는 10대</h3>
+    <div class="header-left">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="brand-title">🌱 환경과 생태 쫌 아는 10대</div>
     </div>
-    <div id="user-info">🔒 로그인 확인 중...</div>
+    <div id="user-header-info"></div>
   </header>
 
-  <!-- 사이드바 -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h4 style="margin:0;">메뉴</h4>
-      <button onclick="toggleSidebar()" style="width:auto; padding:2px 8px; border:none;">✕</button>
+    <div class="sidebar-header">
+      <h4 style="margin:0; font-size:0.95rem;">전체 메뉴</h4>
+      <button style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-muted);" onclick="toggleSidebar()">✕</button>
     </div>
-    <hr style="margin:0; border-color:#374151;">
-    
-    <!-- 로그인 후 표시되는 메뉴 -->
-    <button id="sidebar-forum-btn" onclick="showPage('forum-page'); toggleSidebar();" style="display:none;">💬 자유 포럼</button>
-    <button id="sidebar-rank-btn" onclick="showPage('rank-page'); toggleSidebar();" style="display:none;">🏆 실시간 랭킹</button>
+    <div class="sidebar-nav">
+      <button onclick="navigate('login-page', this)" id="nav-login-btn">🔑 로그인 / 회원가입</button>
+      <button onclick="navigate('chapter-page', this)" class="active">📚 챕터별 기록</button>
+      <button onclick="navigate('review-page', this)">✍️ 종합 감상문</button>
+      <button onclick="navigate('quiz-page', this)">⚡ 무작위 퀴즈 & 랭킹</button>
+      <button onclick="navigate('forum-page', this)">💬 온라인 포럼</button>
+      <button onclick="navigate('settings-page', this)">⚙️ 설정</button>
+    </div>
   </div>
 
-  <div class="container" style="margin-top:2rem;">
-    <!-- 1. 로그인 / 회원가입 세션 -->
-    <div id="auth-section">
+  <div class="container">
+    <!-- 0. 로그인 및 회원가입 페이지 -->
+    <div id="login-page" class="page">
+      <div class="page-header">
+        <h3 id="auth-title">🔒 로그인</h3>
+        <p>계정이 없으시면 회원가입 후 이용할 수 있습니다.</p>
+      </div>
+
       <!-- 로그인 폼 -->
-      <div id="login-box" class="auth-card">
-        <h3>로그인</h3>
-        <input type="email" id="login-email" placeholder="이메일">
-        <input type="password" id="login-pass" placeholder="비밀번호">
-        <button onclick="handleLogin()" class="btn-cyan">로그인</button>
+      <div id="login-form-box" style="max-width:340px; margin:0 auto;">
+        <input type="text" id="login-username" class="input-field" placeholder="이메일 아이디">
+        <input type="password" id="login-password" class="input-field" placeholder="비밀번호">
+        <button onclick="handleLogin()" class="primary-btn" style="width:100%; margin-bottom: 0.4rem;">로그인</button>
         
-        <!-- 구글 로그인 버튼 -->
         <button onclick="handleGoogleLogin()" class="btn-google">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           Google 계정으로 로그인
         </button>
 
-        <p style="text-align:center; margin-top:1.5rem; margin-bottom:0; font-size:0.9rem;">
-          계정이 없으신가요? <span class="toggle-link" onclick="toggleAuthView('signup')">회원가입</span>
+        <p style="text-align:center; font-size: 0.8rem; margin-top:0.8rem;">
+          계정이 없으신가요? <a href="#" onclick="toggleAuthMode('signup')" style="color:var(--primary); font-weight:bold;">회원가입 하기</a>
         </p>
       </div>
 
       <!-- 회원가입 폼 -->
-      <div id="signup-box" class="auth-card" style="display:none;">
-        <h3>회원가입</h3>
-        <input type="email" id="signup-email" placeholder="이메일">
-        <input type="password" id="signup-pass" placeholder="비밀번호">
-        <input type="text" id="signup-nick" placeholder="닉네임">
-        <button onclick="handleSignup()" class="btn-cyan">가입하기</button>
-        
-        <!-- 구글 가입/로그인 버튼 -->
+      <div id="signup-form-box" style="display:none; max-width:340px; margin:0 auto;">
+        <input type="text" id="signup-username" class="input-field" placeholder="이메일 아이디">
+        <input type="password" id="signup-password" class="input-field" placeholder="비밀번호">
+        <input type="text" id="signup-nickname" class="input-field" placeholder="닉네임">
+        <button onclick="handleSignup()" class="primary-btn" style="width:100%; margin-bottom: 0.4rem;">회원가입 완료</button>
+
         <button onclick="handleGoogleLogin()" class="btn-google">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           Google 계정으로 시작하기
         </button>
 
-        <p style="text-align:center; margin-top:1.5rem; margin-bottom:0; font-size:0.9rem;">
-          이미 계정이 있으신가요? <span class="toggle-link" onclick="toggleAuthView('login')">로그인</span>
+        <p style="text-align:center; font-size: 0.8rem; margin-top:0.8rem;">
+          이미 계정이 있으신가요? <a href="#" onclick="toggleAuthMode('login')" style="color:var(--primary); font-weight:bold;">로그인 하기</a>
         </p>
       </div>
     </div>
 
-    <!-- 2. 자유 포럼 페이지 -->
-    <div id="forum-page" class="page-content">
-      <h2>💬 자유 포럼</h2>
-      <div style="background:#1f2937; padding:1.5rem; border-radius:12px; margin-bottom:2rem; border:1px solid #374151;">
-        <input type="text" id="forum-input" placeholder="의견을 남겨주세요">
-        <button onclick="submitForum()" class="btn-cyan" style="width:100%;">글 등록</button>
+    <!-- 1. 챕터별 평가 -->
+    <div id="chapter-page" class="page active">
+      <div class="page-header">
+        <h3>📚 챕터별 평가 및 요약</h3>
+        <p>최대 <strong>5.0점</strong> 범위 내에서 평점을 매기고 요약을 남겨보세요.</p>
       </div>
-      <div id="forum-list"></div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>1. 컵라면과 젓가락 (자원과 쓰레기)</strong>
+          <div class="rating-box">
+            평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0
+          </div>
+        </div>
+        <textarea placeholder="핵심 내용을 입력하세요..."></textarea>
+      </div>
+
+      <div class="chapter-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+          <strong>2. 바나나와 아보카도 (수입 식품과 탄소발자국)</strong>
+          <div class="rating-box">
+            평점: <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0
+          </div>
+        </div>
+        <textarea placeholder="핵심 내용을 입력하세요..."></textarea>
+      </div>
     </div>
 
-    <!-- 3. 랭킹 페이지 -->
-    <div id="rank-page" class="page-content">
-      <h2>🏆 실시간 랭킹</h2>
-      <article style="background:#1f2937; border:1px solid #374151;">
-        <p>준비 중인 페이지입니다.</p>
-      </article>
+    <!-- 2. 종합 감상문 -->
+    <div id="review-page" class="page">
+      <div class="page-header">
+        <h3>✍️ 종합 독서 감상문</h3>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;" class="chapter-card">
+        <strong>전체 평점</strong>
+        <div class="rating-box">
+          <input type="number" min="0" max="5" step="0.1" placeholder="0.0" style="width:45px; margin:0;" oninput="limitMaxRating(this)"> / 5.0 점
+        </div>
+      </div>
+      <textarea style="height: 150px;" placeholder="종합 소감을 적어보세요..."></textarea>
+    </div>
+
+    <!-- 3. 퀴즈 & 실시간 온라인 랭킹 -->
+    <div id="quiz-page" class="page">
+      <div class="page-header">
+        <h3>⚡ 무작위 퀴즈 & 명예의 전당 (랭킹)</h3>
+      </div>
+      
+      <div id="quiz-start-screen" style="text-align:center; padding:1rem 0;">
+        <p id="quiz-user-status" style="margin-bottom:0.8rem; font-weight:bold;"></p>
+        <button onclick="startQuiz()" class="primary-btn">퀴즈 풀기 시작</button>
+      </div>
+
+      <div id="quiz-body" style="display:none;">
+        <div style="color:#ef4444; font-weight:700; margin-bottom:0.6rem; font-size:0.9rem;">⏱️ 소요 시간: <span id="timer">0.0</span>초</div>
+        <h4 id="question-text" style="margin:0.5rem 0 0.8rem 0;">문제가 표시됩니다.</h4>
+        <div id="options-container"></div>
+      </div>
+
+      <div id="quiz-result-screen" style="display:none; text-align:center;">
+        <h4>🎉 퀴즈 종료!</h4>
+        <p id="quiz-result-text" style="font-size:1rem; font-weight:700; color:var(--primary);"></p>
+        <button onclick="resetQuiz()" class="primary-btn">다시 도전하기</button>
+      </div>
+
+      <hr style="margin:1.5rem 0; border:none; border-top:1px solid var(--border-color);">
+
+      <h4 style="margin:0 0 0.6rem 0;">🏆 실시간 TOP 10 랭킹</h4>
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>닉네임</th>
+            <th>점수</th>
+            <th>시간</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-list">
+          <tr><td colspan="4">랭킹 불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. 온라인 포럼 -->
+    <div id="forum-page" class="page">
+      <div class="page-header">
+        <h3>💬 온라인 독서 포럼</h3>
+        <p>전국의 독자들과 생각을 자유롭게 공유해보세요.</p>
+      </div>
+
+      <div class="chapter-card" style="margin-bottom: 1.5rem;">
+        <textarea id="forum-content" placeholder="로그인 후 의견을 입력해 주세요..." style="height:70px; margin-bottom:0.5rem;"></textarea>
+        <button onclick="submitForumPost()" class="primary-btn" style="width:100%;">글 등록하기</button>
+      </div>
+
+      <div id="forum-posts-container"></div>
+    </div>
+
+    <!-- 5. 환경 설정 -->
+    <div id="settings-page" class="page">
+      <div class="page-header">
+        <h3>⚙️ 개인화 설정</h3>
+      </div>
+      <div class="chapter-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>화면 테마</strong>
+        <div>
+          <button onclick="setTheme('light')" class="primary-btn" style="padding:0.25rem 0.5rem; font-size:0.75rem;">☀️ 라이트</button>
+          <button onclick="setTheme('dark')" class="primary-btn" style="padding:0.25rem 0.5rem; font-size:0.75rem; background:#334155;">🌙 다크</button>
+        </div>
+      </div>
+      <div class="chapter-card" style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>글꼴 선택</strong>
+        <select id="font-family-select" onchange="changeFontFamily(this.value)" class="input-field" style="width: auto; margin:0;">
+          <option value="'Noto Sans KR', sans-serif">기본 고딕</option>
+          <option value="'Nanum Gothic', sans-serif">나눔 고딕</option>
+          <option value="'Gowun Batang', serif">고운 바탕</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <script>
+    // 네비게이션 및 UI 동적 조작
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
       document.getElementById('sidebar-overlay').classList.toggle('active');
     }
 
-    function showPage(pageId) {
-      document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById(pageId);
-      if(target) target.classList.add('active');
+    function navigate(pageId, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      if (btn) btn.classList.add('active');
+      if (document.getElementById('sidebar').classList.contains('active')) toggleSidebar();
     }
+
+    function limitMaxRating(input) {
+      if (parseFloat(input.value) > 5.0) { alert("평점은 최대 5.0점까지만 입력할 수 있습니다."); input.value = 5.0; }
+      else if (parseFloat(input.value) < 0) input.value = 0.0;
+    }
+
+    // 퀴즈 시스템
+    const questionBank = [
+      { q: "수입 과일(바나나, 아보카도)의 주요 환경 문제는?", opts: ["장거리 수송의 탄소발자국", "영양소 파괴", "포장 쓰레기 없음", "물 사용 안함"], ans: 0 },
+      { q: "전자 쓰레기의 주요 위험성은?", opts: ["1년 내 자연분해", "중금속으로 인한 토양/수질 오염", "재활용 완벽함", "지구온난화 방지"], ans: 1 },
+      { q: "미세 플라스틱의 주요 원인은?", opts: ["부서진 플라스틱 쓰레기", "천연 비누", "종이 상자", "유리병"], ans: 0 }
+    ];
+    let currentQ = [], qIdx = 0, score = 0, timer = null, time = 0;
+
+    function startQuiz() {
+      if (!window.getCurrentUser()) return alert('로그인 후 퀴즈에 참여할 수 있습니다.');
+
+      currentQ = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 3);
+      qIdx = 0; score = 0; time = 0;
+      document.getElementById('quiz-start-screen').style.display = 'none';
+      document.getElementById('quiz-result-screen').style.display = 'none';
+      document.getElementById('quiz-body').style.display = 'block';
+
+      timer = setInterval(() => { time += 0.1; document.getElementById('timer').innerText = time.toFixed(1); }, 100);
+      renderQ();
+    }
+
+    function renderQ() {
+      const q = currentQ[qIdx];
+      document.getElementById('question-text').innerText = `[Q${qIdx + 1}] ${q.q}`;
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+      q.opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = () => { if(idx === q.ans) score += 10; qIdx++; if(qIdx < currentQ.length) renderQ(); else finishQuiz(); };
+        container.appendChild(btn);
+      });
+    }
+
+    async function finishQuiz() {
+      clearInterval(timer);
+      const finalTime = parseFloat(time.toFixed(1));
+      document.getElementById('quiz-body').style.display = 'none';
+      document.getElementById('quiz-result-screen').style.display = 'block';
+      document.getElementById('quiz-result-text').innerText = `획득 점수: ${score}점 / 30점 (${finalTime}초)`;
+
+      // Firebase Realtime DB에 랭킹 저장
+      await window.saveQuizScore(score, finalTime);
+    }
+
+    function resetQuiz() {
+      document.getElementById('quiz-result-screen').style.display = 'none';
+      document.getElementById('quiz-start-screen').style.display = 'block';
+    }
+
+    // 설정
+    function setTheme(t) { document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : ''); }
+    function changeFontFamily(f) { document.body.style.fontFamily = f; }
   </script>
 </body>
 </html>
