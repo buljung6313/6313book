@@ -1,729 +1,128 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>환경과 생태 쫌 아는 10대 - 독서 & 퀴즈 워크북</title>
+  <title>환경과 생태 쫌 아는 10대</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK (CDN 방식) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  <style>
-    :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #10b981;
-      --primary-hover: #059669;
-      --secondary: #3b82f6;
-      --border-color: #e2e8f0;
-      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-      --font-family: 'Noto Sans KR', sans-serif;
-      --font-size: 16px;
-    }
+    // 💡 발급받으신 Firebase 설정 적용
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3vpk4KQ8cUykmEh-OrrfvMlqKZdRpc-8",
+      authDomain: "bugur-king.firebaseapp.com",
+      databaseURL: "https://bugur-king-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "bugur-king",
+      storageBucket: "bugur-king.firebasestorage.app",
+      messagingSenderId: "550291650663",
+      appId: "1:550291650663:web:0f66287087dc0bfc487cc2",
+      measurementId: "G-LCSTLKGLJK"
+    };
 
-    [data-theme="dark"] {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #10b981;
-      --primary-hover: #34d399;
-      --secondary: #60a5fa;
-      --border-color: #334155;
-      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    * {
-      box-sizing: border-box;
-      transition: background-color 0.25s, border-color 0.25s, color 0.25s;
-    }
+    let currentUser = null;
 
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: var(--font-family) !important;
-      font-size: var(--font-size);
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-    }
+    // 로그인 상태 감지
+    onAuthStateChanged(auth, (user) => {
+      const userInfoDiv = document.getElementById('user-info');
+      if (user) {
+        currentUser = user;
+        userInfoDiv.innerHTML = `👤 ${user.displayName || user.email}님 <button onclick="window.handleLogout()" style="padding:4px 8px; margin-left:10px;">로그아웃</button>`;
+      } else {
+        currentUser = null;
+        userInfoDiv.innerText = "🔒 로그인 필요";
+      }
+    });
 
-    /* 상단 헤더 */
-    header {
-      background: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 90;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
+    // 회원가입
+    window.handleSignup = async () => {
+      const email = document.getElementById('signup-email').value;
+      const pass = document.getElementById('signup-pass').value;
+      const nickname = document.getElementById('signup-nick').value;
+      try {
+        const res = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(res.user, { displayName: nickname });
+        alert("회원가입 성공!");
+      } catch (e) { alert(e.message); }
+    };
 
-    /* 사이드바 토글 버튼 */
-    .menu-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--text-main);
-      cursor: pointer;
-      margin-right: 1rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-    }
+    // 로그인
+    window.handleLogin = async () => {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-pass').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        alert("로그인 성공!");
+      } catch (e) { alert("로그인 실패: " + e.message); }
+    };
 
-    .menu-btn:hover {
-      background-color: var(--bg-color);
-    }
+    // 로그아웃
+    window.handleLogout = () => signOut(auth);
 
-    .brand-title {
-      font-size: 1.25rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin: 0;
-    }
+    // 포럼 글 작성
+    window.submitForum = async () => {
+      if (!currentUser) return alert("로그인 후 이용 가능합니다.");
+      const content = document.getElementById('forum-input').value;
+      if (!content) return;
 
-    /* 사이드바 디자인 */
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
+      const postsRef = ref(db, 'posts');
+      await push(postsRef, {
+        author: currentUser.displayName || currentUser.email,
+        content: content,
+        timestamp: Date.now()
+      });
+      document.getElementById('forum-input').value = '';
+    };
 
-    .sidebar-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100%;
-      background-color: var(--card-bg);
-      border-right: 1px solid var(--border-color);
-      z-index: 101;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      transition: left 0.3s ease;
-      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar.active {
-      left: 0;
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .sidebar-header h4 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 700;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .sidebar-nav button {
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      padding: 0.8rem 1rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      text-align: left;
-      font-family: inherit !important;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .sidebar-nav button:hover {
-      background-color: var(--bg-color);
-      color: var(--primary);
-    }
-
-    .sidebar-nav button.active {
-      background-color: var(--primary);
-      color: #ffffff;
-    }
-
-    /* 메인 컨테이너 */
-    .container {
-      max-width: 860px;
-      margin: 2.5rem auto;
-      padding: 0 1.25rem;
-    }
-
-    .page {
-      display: none;
-      background: var(--card-bg);
-      padding: 2.5rem;
-      border-radius: 16px;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--card-shadow);
-    }
-
-    .page.active {
-      display: block;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .page-header {
-      margin-bottom: 2rem;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 1rem;
-    }
-
-    .page-header h3 {
-      font-size: 1.5rem;
-      margin: 0 0 0.4rem 0;
-    }
-
-    .page-header p {
-      color: var(--text-muted);
-      margin: 0;
-      font-size: 0.95rem;
-    }
-
-    /* 챕터 카드 */
-    .chapter-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .chapter-card:hover {
-      border-color: var(--primary);
-    }
-
-    .chapter-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .chapter-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-
-    .rating-box {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--bg-color);
-      padding: 0.3rem 0.8rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .rating-box input[type="number"] {
-      width: 60px;
-      padding: 0.25rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.95rem;
-      background-color: var(--card-bg);
-      color: var(--text-main);
-      font-family: inherit !important;
-    }
-
-    textarea {
-      width: 100%;
-      height: 110px;
-      padding: 0.8rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-color);
-      color: var(--text-main);
-      font-family: inherit !important;
-      font-size: 0.95rem;
-      resize: vertical;
-      outline: none;
-    }
-
-    textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    }
-
-    /* 퀴즈 UI */
-    .timer-badge {
-      display: inline-block;
-      background: #fef2f2;
-      color: #ef4444;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
-      border: 1px solid #fee2e2;
-    }
-
-    [data-theme="dark"] .timer-badge {
-      background: #451a1a;
-      border-color: #7f1d1d;
-      color: #fca5a5;
-    }
-
-    .option-btn {
-      display: block;
-      width: 100%;
-      padding: 1rem 1.25rem;
-      margin: 0.6rem 0;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      text-align: left;
-      cursor: pointer;
-      font-size: 1rem;
-      font-family: inherit !important;
-      font-weight: 500;
-    }
-
-    .option-btn:hover {
-      border-color: var(--primary);
-      background-color: rgba(16, 185, 129, 0.05);
-      color: var(--primary);
-    }
-
-    .primary-btn {
-      padding: 0.75rem 1.5rem;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      font-family: inherit !important;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-    }
-
-    .primary-btn:hover {
-      background: var(--primary-hover);
-    }
-
-    /* 설정 */
-    .setting-card {
-      background: var(--bg-color);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    select {
-      padding: 0.5rem 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background-color: var(--card-bg);
-      color: var(--text-main);
-      font-family: inherit !important;
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-  </style>
+    // 포럼 실시간 불러오기
+    const postsRef = ref(db, 'posts');
+    onValue(postsRef, (snapshot) => {
+      const data = snapshot.val();
+      const div = document.getElementById('forum-list');
+      if (!data) { div.innerHTML = '등록된 글이 없습니다.'; return; }
+      
+      const posts = Object.values(data).reverse();
+      div.innerHTML = posts.map(p => `<article style="padding:10px; margin-bottom:10px;"><strong>${p.author}</strong>: ${p.content}</article>`).join('');
+    });
+  </script>
 </head>
-<body>
-
-  <!-- 상단 헤더 -->
-  <header>
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="brand-title">🌱 환경과 생태 쫌 아는 10대</div>
+<body class="container">
+  <header style="margin-bottom: 20px;">
+    <h1>🌱 환경과 생태 워크북</h1>
+    <div id="user-info">🔒 로그인 확인 중...</div>
   </header>
 
-  <!-- 사이드바 및 어두운 배경 오버레이 -->
-  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h4>전체 메뉴</h4>
-      <button class="close-btn" onclick="toggleSidebar()">✕</button>
-    </div>
-    <div class="sidebar-nav">
-      <button onclick="navigate('chapter-page', this)" class="active">📚 챕터별 기록</button>
-      <button onclick="navigate('review-page', this)">✍️ 종합 감상문</button>
-      <button onclick="navigate('quiz-page', this)">⚡ 무작위 독서 퀴즈</button>
-      <button onclick="navigate('settings-page', this)">⚙️ 개인화 설정</button>
-    </div>
-  </div>
-
-  <div class="container">
-    <!-- 1. 챕터별 평가 및 독서 기록문 -->
-    <div id="chapter-page" class="page active">
-      <div class="page-header">
-        <h3>📚 챕터별 평가 및 요약 기록</h3>
-        <p>각 주제를 읽고 **최대 5.0점** 범위 내에서 점수를 매기고 주요 내용을 기록해 보세요.</p>
+  <main>
+    <section class="grid">
+      <div>
+        <h4>로그인</h4>
+        <input type="email" id="login-email" placeholder="이메일">
+        <input type="password" id="login-pass" placeholder="비밀번호">
+        <button onclick="handleLogin()">로그인</button>
       </div>
-
-      <div class="chapter-card">
-        <div class="chapter-header">
-          <span class="chapter-title">1. 컵라면과 젓가락 (자원과 쓰레기)</span>
-          <div class="rating-box">
-            <label for="ch1-rating">평점:</label>
-            <input type="number" id="ch1-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
-          </div>
-        </div>
-        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
+      <div>
+        <h4>회원가입</h4>
+        <input type="email" id="signup-email" placeholder="이메일">
+        <input type="password" id="signup-pass" placeholder="비밀번호">
+        <input type="text" id="signup-nick" placeholder="닉네임">
+        <button onclick="handleSignup()">가입하기</button>
       </div>
+    </section>
 
-      <div class="chapter-card">
-        <div class="chapter-header">
-          <span class="chapter-title">2. 바나나와 아보카도 (수입 식품과 탄소발자국)</span>
-          <div class="rating-box">
-            <label for="ch2-rating">평점:</label>
-            <input type="number" id="ch2-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
-          </div>
-        </div>
-        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
-      </div>
-
-      <div class="chapter-card">
-        <div class="chapter-header">
-          <span class="chapter-title">3. 생수병과 미세 플라스틱 (플라스틱 생태계)</span>
-          <div class="rating-box">
-            <label for="ch3-rating">평점:</label>
-            <input type="number" id="ch3-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
-          </div>
-        </div>
-        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
-      </div>
-
-      <div class="chapter-card">
-        <div class="chapter-header">
-          <span class="chapter-title">4. 휴대폰과 전자 쓰레기 (희귀 금속과 오염)</span>
-          <div class="rating-box">
-            <label for="ch4-rating">평점:</label>
-            <input type="number" id="ch4-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
-          </div>
-        </div>
-        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
-      </div>
-
-      <div class="chapter-card">
-        <div class="chapter-header">
-          <span class="chapter-title">5. 패스트 패션과 노동자 (옷의 일생과 환경)</span>
-          <div class="rating-box">
-            <label for="ch5-rating">평점:</label>
-            <input type="number" id="ch5-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0
-          </div>
-        </div>
-        <textarea placeholder="이 챕터에서 느낀 점이나 핵심 내용을 자유롭게 요약해 보세요..."></textarea>
-      </div>
-    </div>
-
-    <!-- 2. 종합 독서 감상문 -->
-    <div id="review-page" class="page">
-      <div class="page-header">
-        <h3>✍️ 종합 독서 감상문</h3>
-        <p>책 전체를 읽고 느낀 종합적인 소감과 실천 다짐을 적어보세요.</p>
-      </div>
-      
-      <div class="setting-card">
-        <strong>전체 도서 평점</strong>
-        <div class="rating-box">
-          <input type="number" id="overall-rating" min="0" max="5" step="0.1" placeholder="0.0" oninput="limitMaxRating(this)"> / 5.0 점
-        </div>
-      </div>
-
-      <textarea id="overall-review" style="height: 280px;" placeholder="일상 속 나의 소비와 환경의 연결 고리에 대해 깨달은 점을 종합해서 적어보세요..."></textarea>
-    </div>
-
-    <!-- 3. 독서 확인 퀴즈 (랜덤 3문제 모드) -->
-    <div id="quiz-page" class="page">
-      <div class="page-header">
-        <h3>⚡ 무작위 독서 퀴즈</h3>
-        <p>문제 은행에서 매번 **랜덤으로 추첨된 3문제**를 풀어봅니다.</p>
-      </div>
-      
-      <div id="quiz-start-screen" style="text-align: center; padding: 2rem 0;">
-        <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">준비되셨나요? 시작 버튼을 누르면 무작위 3문제가 출제됩니다.</p>
-        <button onclick="startQuiz()" class="primary-btn">퀴즈 풀기 시작</button>
-      </div>
-
-      <div id="quiz-body" style="display: none;">
-        <div class="timer-badge">⏱️ 소요 시간: <span id="timer">0.0</span>초</div>
-        <h4 id="question-text" style="font-size: 1.2rem; margin-bottom: 1.2rem;">질문이 들어갑니다.</h4>
-        <div id="options-container"></div>
-      </div>
-
-      <div id="quiz-result-screen" style="display: none; text-align: center; padding: 2rem 0;">
-        <h4 style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎉 수고하셨습니다!</h4>
-        <p id="quiz-result-text" style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1.5rem;"></p>
-        <button onclick="resetQuiz()" class="primary-btn">새로운 랜덤 문제 풀기</button>
-      </div>
-    </div>
-
-    <!-- 4. 환경 설정 -->
-    <div id="settings-page" class="page">
-      <div class="page-header">
-        <h3>⚙️ 개인화 설정</h3>
-        <p>원하는 테마와 글꼴, 글자 크기로 화면 환경을 조절하세요.</p>
-      </div>
-      
-      <div class="setting-card">
-        <strong>화면 테마</strong>
-        <div>
-          <button onclick="setTheme('light')" class="primary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">☀️ 라이트</button>
-          <button onclick="setTheme('dark')" class="primary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #334155;">🌙 다크</button>
-        </div>
-      </div>
-
-      <div class="setting-card">
-        <label for="font-family-select"><strong>글꼴 변경</strong></label>
-        <select id="font-family-select" onchange="changeFontFamily(this.value)">
-          <option value="'Noto Sans KR', sans-serif">기본 고딕 (Noto Sans)</option>
-          <option value="'Nanum Gothic', sans-serif">나눔 고딕 (Nanum Gothic)</option>
-          <option value="'Gowun Batang', serif">고운 바탕 (명조/바탕체)</option>
-        </select>
-      </div>
-
-      <div class="setting-card">
-        <label for="font-size-select"><strong>글자 크기</strong></label>
-        <select id="font-size-select" onchange="changeFontSize(this.value)">
-          <option value="15px">작게 (15px)</option>
-          <option value="16px" selected>보통 (16px)</option>
-          <option value="18px">크게 (18px)</option>
-          <option value="20px">매우 크게 (20px)</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // -------------------------------------------------------------
-    // 사이드바 토글 기능
-    // -------------------------------------------------------------
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebar-overlay');
-      sidebar.classList.toggle('active');
-      overlay.classList.toggle('active');
-    }
-
-    function navigate(pageId, btnElement) {
-      showPage(pageId, btnElement);
-      toggleSidebar(); // 이동 후 사이드바 닫기
-    }
-
-    function showPage(pageId, btnElement) {
-      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-      document.querySelectorAll('.sidebar-nav button').forEach(btn => btn.classList.remove('active'));
-      
-      document.getElementById(pageId).classList.add('active');
-      if (btnElement) {
-        btnElement.classList.add('active');
-      }
-    }
-
-    // -------------------------------------------------------------
-    // 5.0점 초과 제한 유효성 검사
-    // -------------------------------------------------------------
-    function limitMaxRating(input) {
-      let val = parseFloat(input.value);
-      if (val > 5.0) {
-        alert("평점은 최대 5.0점까지만 입력할 수 있습니다.");
-        input.value = 5.0;
-      } else if (val < 0) {
-        input.value = 0.0;
-      }
-    }
-
-    // -------------------------------------------------------------
-    // 퀴즈 문제 은행 (다양한 문제 모음)
-    // -------------------------------------------------------------
-    const questionBank = [
-      {
-        question: "1. 수입 과일인 '아보카도'나 '바나나'를 먹을 때 발생하는 주요 환경 문제는 무엇인가요?",
-        options: ["장거리 수송 시 수송 수단이 배출하는 탄소 발자국", "국내 수확 과일보다 비타민이 전혀 없는 점", "포장지가 없어 쓰레기가 안 나오는 점", "생산할 때 물이 소비되지 않는 점"],
-        answer: 0
-      },
-      {
-        question: "2. 버려진 전자제품(휴대폰 등)에서 발생하는 '전자 쓰레기'의 주요 폐해는 무엇인가요?",
-        options: ["자연 상태에서 1년 안에 완전히 분해된다.", "중금속과 유독 물질이 토양과 수질을 심각하게 오염시킨다.", "재활용이 쉬워 환경 오염이 전혀 없다.", "지구 온난화를 직접적으로 막아준다."],
-        answer: 1
-      },
-      {
-        question: "3. '패스트 패션'이 환경에 주는 안 좋은 영향으로 가장 적절한 것은?",
-        options: ["옷을 오래 입어 쓰레기가 줄어든다.", "대량 생산과 폐기 과정에서 과도한 물 소비와 온실가스가 발생한다.", "100% 천연 섬유만 사용한다.", "생산 노동자들에게 높은 임금을 준다."],
-        answer: 1
-      },
-      {
-        question: "4. 바다로 흘러 들어간 플라스틱 쓰레기가 햇빛과 파도에 잘게 부서진 것을 무엇이라 하나요?",
-        options: ["바이오 플라스틱", "미세 플라스틱", "천연 분해 알갱이", "재활용 가공품"],
-        answer: 1
-      },
-      {
-        question: "5. 지구 온난화를 유발하는 대표적인 온실가스는 무엇일까요?",
-        options: ["산소", "이산화 탄소", "질소", "수소"],
-        answer: 1
-      },
-      {
-        question: "6. 고유 생태계에 유입되어 먹이사슬을 교란하고 생물 다양성을 위협하는 종은?",
-        options: ["토종 생물", "외래 생태계 교란종", "멸종 위기종", "천연기념물"],
-        answer: 1
-      },
-      {
-        question: "7. 물건을 사서 쓰기보다 필요한 사람들과 나누거나 빌려 쓰는 경제 활동은?",
-        options: ["공유 경제", "낭비 경제", "직구 경제", "패스트 경제"],
-        answer: 0
-      },
-      {
-        question: "8. 제품의 생산부터 폐기까지 전 과정에서 발생하는 온실가스 총량을 의미하는 용어는?",
-        options: ["탄소 발자국", "생태 지수", "친환경 레이블", "환경 등급"],
-        answer: 0
-      }
-    ];
-
-    let currentQuestions = []; // 무작위로 추출된 3문제가 담길 배열
-    let currentQuestionIdx = 0;
-    let score = 0;
-    let timerInterval = null;
-    let timeElapsed = 0;
-
-    // -------------------------------------------------------------
-    // 랜덤 3문제 무작위 추첨 및 퀴즈 시작
-    // -------------------------------------------------------------
-    function startQuiz() {
-      // 1. 문제 은행 Shuffle (무작위 섞기)
-      const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
-      // 2. 상위 3개 문항만 추출
-      currentQuestions = shuffled.slice(0, 3);
-
-      currentQuestionIdx = 0;
-      score = 0;
-      timeElapsed = 0;
-
-      document.getElementById('quiz-start-screen').style.display = 'none';
-      document.getElementById('quiz-result-screen').style.display = 'none';
-      document.getElementById('quiz-body').style.display = 'block';
-
-      timerInterval = setInterval(() => {
-        timeElapsed += 0.1;
-        document.getElementById('timer').innerText = timeElapsed.toFixed(1);
-      }, 100);
-
-      renderQuestion();
-    }
-
-    function renderQuestion() {
-      const q = currentQuestions[currentQuestionIdx];
-      document.getElementById('question-text').innerText = `[Q${currentQuestionIdx + 1}] ${q.question}`;
-      
-      const container = document.getElementById('options-container');
-      container.innerHTML = '';
-
-      q.options.forEach((opt, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerText = opt;
-        btn.onclick = () => selectAnswer(idx);
-        container.appendChild(btn);
-      });
-    }
-
-    function selectAnswer(selectedIdx) {
-      if (selectedIdx === currentQuestions[currentQuestionIdx].answer) {
-        score += 10;
-      }
-
-      currentQuestionIdx++;
-      if (currentQuestionIdx < currentQuestions.length) {
-        renderQuestion();
-      } else {
-        finishQuiz();
-      }
-    }
-
-    function finishQuiz() {
-      clearInterval(timerInterval);
-      const finalTime = timeElapsed.toFixed(1);
-
-      document.getElementById('quiz-body').style.display = 'none';
-      document.getElementById('quiz-result-screen').style.display = 'block';
-      document.getElementById('quiz-result-text').innerText = `획득 점수: ${score}점 / 30점 만점 (소요 시간: ${finalTime}초)`;
-    }
-
-    function resetQuiz() {
-      document.getElementById('quiz-result-screen').style.display = 'none';
-      document.getElementById('quiz-start-screen').style.display = 'block';
-    }
-
-    // -------------------------------------------------------------
-    // 설정 옵션
-    // -------------------------------------------------------------
-    function setTheme(theme) {
-      if (theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-      }
-    }
-
-    function changeFontSize(size) {
-      document.documentElement.style.setProperty('--font-size', size);
-    }
-
-    function changeFontFamily(font) {
-      document.documentElement.style.setProperty('--font-family', font);
-      document.body.style.fontFamily = font;
-    }
-  </script>
+    <section>
+      <h3>💬 온라인 포럼</h3>
+      <input type="text" id="forum-input" placeholder="의견을 남겨주세요">
+      <button onclick="submitForum()">글 등록</button>
+      <div id="forum-list"></div>
+    </section>
+  </main>
 </body>
 </html>
